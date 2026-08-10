@@ -16,6 +16,9 @@ const LINKS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  // Login is the one page reachable without a session — no nav to offer there.
+  if (pathname === "/login") return null;
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 

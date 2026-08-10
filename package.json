@@ -8,10 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "seed:resume": "tsx --env-file-if-exists=.env.local scripts/seed-resume.ts",
-    "check": "tsx scripts/check.ts"
+    "check": "tsx scripts/check.ts",
+    "data:push": "tsx --env-file-if-exists=.env.local scripts/push-data.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.116.0",
+    "@vercel/blob": "^2.7.0",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

@@ -1,6 +1,7 @@
 import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { blobEnabled, blobListNames, blobRead, blobWrite } from "./blob-store";
 import type {
   Application,
   Assignment,
@@ -14,22 +15,48 @@ import type {
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
-async function read<T>(file: string, fallback: T): Promise<T> {
+/**
+ * Two backends behind one interface: local disk for `next dev`, Vercel Blob
+ * once BLOB_READ_WRITE_TOKEN is set. A hosted serverless filesystem is
+ * read-only and thrown away between requests, so disk writes cannot be used
+ * there.
+ */
+const blobBacked = () => blobEnabled();
+
+async function readRaw(relPath: string): Promise<string | null> {
   try {
-    const raw = await fs.readFile(path.join(DATA_DIR, file), "utf8");
-    return raw.trim() ? (JSON.parse(raw) as T) : fallback;
+    if (blobBacked()) return await blobRead(relPath);
+    return await fs.readFile(path.join(DATA_DIR, relPath), "utf8");
+  } catch {
+    return null;
+  }
+}
+
+async function writeRaw(relPath: string, body: string, contentType: string): Promise<void> {
+  if (blobBacked()) {
+    await blobWrite(relPath, body, contentType);
+    return;
+  }
+  // Atomic write: temp file then rename, so a crash mid-write cannot truncate the real file.
+  const target = path.join(DATA_DIR, relPath);
+  const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  await fs.writeFile(tmp, body, "utf8");
+  await fs.rename(tmp, target);
+}
+
+async function read<T>(file: string, fallback: T): Promise<T> {
+  const raw = await readRaw(file);
+  if (!raw?.trim()) return fallback;
+  try {
+    return JSON.parse(raw) as T;
   } catch {
     return fallback;
   }
 }
 
-/** Atomic write: temp file then rename, so a crash mid-write cannot truncate the real file. */
 async function write<T>(file: string, data: T): Promise<void> {
-  const target = path.join(DATA_DIR, file);
-  const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2), "utf8");
-  await fs.rename(tmp, target);
+  await writeRaw(file, JSON.stringify(data, null, 2), "application/json");
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -82,26 +109,22 @@ export const setListings = (v: ListingsCache) => write("listings-cache.json", v)
 
 /** Tailored resume + cover letter markdown, one file per job. */
 export async function saveTailored(jobId: string, markdown: string): Promise<string> {
-  const dir = path.join(DATA_DIR, "tailored");
-  await fs.mkdir(dir, { recursive: true });
-  const file = `${jobId.replace(/[^a-z0-9._-]/gi, "_")}.md`;
-  await fs.writeFile(path.join(dir, file), markdown, "utf8");
-  return `tailored/${file}`;
+  const rel = `tailored/${jobId.replace(/[^a-z0-9._-]/gi, "_")}.md`;
+  await writeRaw(rel, markdown, "text/markdown");
+  return rel;
 }
 
 export async function readTailored(relPath: string): Promise<string | null> {
-  // path is app-generated, but it round-trips through JSON on disk — keep it inside DATA_DIR
+  // path is app-generated, but it round-trips through storage — keep it inside the data root
   const target = path.resolve(DATA_DIR, relPath);
   if (target !== DATA_DIR && !target.startsWith(DATA_DIR + path.sep)) return null;
-  try {
-    return await fs.readFile(target, "utf8");
-  } catch {
-    return null;
-  }
+  const rel = path.relative(DATA_DIR, target).split(path.sep).join("/");
+  return readRaw(rel);
 }
 
 export async function listTailored(): Promise<string[]> {
   try {
+    if (blobBacked()) return (await blobListNames("tailored")).filter((f) => f.endsWith(".md"));
     return (await fs.readdir(path.join(DATA_DIR, "tailored"))).filter((f) => f.endsWith(".md"));
   } catch {
     return [];

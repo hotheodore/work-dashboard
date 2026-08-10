@@ -2,6 +2,9 @@ import { refreshListings } from "@/lib/jobs";
 
 export const maxDuration = 60;
 
+/** Vercel Cron issues GET; the UI posts. Same work either way. */
+export const GET = (request: Request) => POST(request);
+
 export async function POST(request: Request) {
   const force = new URL(request.url).searchParams.get("force") === "1";
   try {

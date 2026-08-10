@@ -1,8 +1,8 @@
 # Work Dashboard
 
-A local-first dashboard for tracking coursework and internship applications, built with Next.js 16, React 19, and Tailwind CSS 4. All state lives on disk as JSON — no database, no account, no cloud sync.
+A dashboard for tracking coursework and internship applications, built with Next.js 16, React 19, and Tailwind CSS 4. State is JSON — on local disk during development, in Vercel Blob when deployed. No database, no accounts.
 
-> **Note:** This is a self-hosted application, not a hosted web service. It reads and writes files on the machine it runs on and uses server-side API routes, so it must be run locally with `npm run dev`. This page is documentation only.
+> **Note:** Run it locally with `npm run dev`, or deploy it to Vercel — see [Deploying](#deploying). This page is documentation only.
 
 ## Features
 
@@ -50,9 +50,36 @@ Seed the resume from a PDF once, then edit it on the Resume page:
 npm run seed:resume -- "path/to/Resume.pdf"
 ```
 
+## Deploying
+
+The app runs on Vercel. A serverless filesystem is read-only and discarded between requests, so the hosted instance keeps the same JSON files in [Vercel Blob](https://vercel.com/docs/vercel-blob) instead of `data/`. The switch is automatic: `lib/store.ts` uses Blob whenever `BLOB_READ_WRITE_TOKEN` is set, and local disk otherwise, so `npm run dev` is unchanged.
+
+1. Push the repo to GitHub and import it at [vercel.com/new](https://vercel.com/new).
+2. In the project, **Storage → Create → Blob**, then connect the store. Vercel adds `BLOB_READ_WRITE_TOKEN` to the environment.
+3. Add the remaining environment variables (Project → Settings → Environment Variables):
+
+   | Variable | Required | Purpose |
+   | --- | --- | --- |
+   | `BLOB_READ_WRITE_TOKEN` | yes | Added by the Blob store; switches storage off the filesystem |
+   | `DASHBOARD_PASSWORD` | yes | The password for the sign-in page. Without it the site is public |
+   | `ANTHROPIC_API_KEY` | optional | Resume tailoring, cover letters, syllabus parsing |
+   | `CRON_SECRET` | optional | Lets the twice-daily listings cron through the password gate |
+
+4. Copy `BLOB_READ_WRITE_TOKEN` into your local `.env.local` and seed the store with the data already on your machine:
+
+   ```bash
+   npm run data:push
+   ```
+
+   This overwrites the remote copies, so run it before the first deploy, not after editing data in the hosted app.
+
+5. Redeploy. Visiting any page now asks for `DASHBOARD_PASSWORD` first.
+
+Access control lives in `proxy.ts`: every route except `/login` requires a cookie holding a SHA-256 of the password, API routes get a `401` instead of a redirect, and the whole gate is skipped when `DASHBOARD_PASSWORD` is unset. `vercel.json` schedules the listings refresh at 07:00 and 19:00 UTC.
+
 ## How data is stored
 
-Everything lives in `data/`, one JSON file per concern, written atomically so a crash mid-write cannot corrupt a file. Delete any file to reset that section — the app recreates it empty on next load.
+Everything lives in `data/` locally — one JSON file per concern, written atomically so a crash mid-write cannot corrupt a file — and under the `work-dashboard/` prefix of the Blob store when deployed, as private blobs with no public URL. Delete any local file to reset that section — the app recreates it empty on next load.
 
 | File | Holds |
 | --- | --- |
