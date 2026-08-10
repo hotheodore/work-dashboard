@@ -36,11 +36,11 @@ const LIGHT: ChartTheme = {
 const DARK: ChartTheme = {
   dark: true,
   series: SERIES.dark,
-  grid: "#33343a",
-  axis: "#8f9297",
-  muted: "#4a4b50",
-  tooltipBg: "#252629",
-  tooltipBorder: "#3a3b40",
+  grid: "#333333",
+  axis: "#908f8c",
+  muted: "#4a4a4a",
+  tooltipBg: "#262626",
+  tooltipBorder: "#3b3b3b",
   text: "#ecebe8",
 };
 
