@@ -1,69 +1,144 @@
-import Image from "next/image";
+import Link from "next/link";
+import PageHeader from "@/components/PageHeader";
+import { Card, EmptyState, StatTile } from "@/components/ui";
+import DeadlineList from "@/components/DeadlineList";
+import DueTimeline from "@/components/charts/DueTimeline";
+import AppFunnel from "@/components/charts/AppFunnel";
+import ActivityHeatmap from "@/components/charts/ActivityHeatmap";
+import ClassCompletion from "@/components/charts/ClassCompletion";
+import TodayAssignments from "@/components/TodayAssignments";
+import PickList from "@/components/internships/PickList";
+import { getApplications, getAssignments, getClasses } from "@/lib/store";
+import { getDailyPicks } from "@/lib/jobs";
+import {
+  activityCounts,
+  completionData,
+  dayKey,
+  deadlines,
+  funnelData,
+  timelineData,
+} from "@/lib/derive";
+import { streak } from "@/lib/grades";
 
-export default function Home() {
+// reads data/*.json at request time — never prerender
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const [classes, assignments, apps, picks] = await Promise.all([
+    getClasses(),
+    getAssignments(),
+    getApplications(),
+    getDailyPicks(),
+  ]);
+
+  const today = dayKey(new Date());
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const appsThisWeek = apps.filter((a) => new Date(a.appliedAt) >= weekAgo).length;
+  const interviews = apps.filter((a) => a.status === "interview" || a.status === "oa").length;
+  const dueSoon = assignments.filter((a) => {
+    if (a.status === "done") return false;
+    const out = (new Date(`${a.dueDate}T00:00:00`).getTime() - Date.now()) / 86_400_000;
+    return out >= -1 && out <= 7;
+  }).length;
+
+  const counts = activityCounts(assignments, apps);
+  const days = streak(Object.keys(counts));
+  const dueToday = assignments.filter((a) => a.dueDate === today && a.status !== "done");
+
+  const empty = !classes.length && !apps.length && !picks.jobs.length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <PageHeader
+        title="Dashboard"
+        subtitle={new Date().toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
+      />
+
+      {empty && (
+        <div className="mb-6">
+          <EmptyState
+            title="Nothing tracked yet"
+            hint="Add a class under Assignments, then refresh listings in Settings to start getting daily internship picks."
+          />
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile label="Applications this week" value={appsThisWeek} />
+        <StatTile label="Active interviews" value={interviews} tone={interviews ? "ok" : "default"} />
+        <StatTile
+          label="Due in 7 days"
+          value={dueSoon}
+          tone={dueSoon > 4 ? "warn" : "default"}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <StatTile label="Streak" value={`${days}d`} hint="days with activity" />
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <Card
+          title="Today"
+          className="lg:col-span-2"
+          action={
+            <Link href="/internships" className="text-xs text-accent hover:underline">
+              All picks →
+            </Link>
+          }
+        >
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-faint">
+                Due today
+              </p>
+              <TodayAssignments assignments={dueToday} />
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-faint">
+                Today&apos;s picks
+              </p>
+              <PickList jobs={picks.jobs} matchPool={picks.matchPool} compact />
+            </div>
+          </div>
+        </Card>
+
+        <Card title="Deadlines">
+          <DeadlineList items={deadlines(assignments, apps, classes)} />
+        </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Card
+          title="Due next 14 days"
+          action={
+            <Link href="/assignments" className="text-xs text-accent hover:underline">
+              Assignments →
+            </Link>
+          }
+        >
+          <DueTimeline data={timelineData(assignments, classes)} classes={classes} compact />
+        </Card>
+        <Card
+          title="Application funnel"
+          action={
+            <Link href="/internships" className="text-xs text-accent hover:underline">
+              Pipeline →
+            </Link>
+          }
+        >
+          <AppFunnel data={funnelData(apps)} compact />
+        </Card>
+        <Card title="Activity">
+          <ActivityHeatmap counts={counts} compact />
+        </Card>
+        <Card title="Completion by class">
+          <ClassCompletion data={completionData(assignments, classes)} compact />
+        </Card>
+      </div>
+    </>
   );
 }
