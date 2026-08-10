@@ -24,11 +24,46 @@ export async function addClass(input: Omit<Klass, "id">) {
   return klass;
 }
 
+export async function updateClass(id: string, patch: Partial<Omit<Klass, "id">>) {
+  const classes = await store.getClasses();
+  await store.setClasses(classes.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+  revalidatePath("/assignments");
+  revalidatePath("/");
+}
+
 export async function deleteClass(id: string) {
   await store.setClasses((await store.getClasses()).filter((c) => c.id !== id));
   await store.setAssignments((await store.getAssignments()).filter((a) => a.classId !== id));
+  await store.deleteSyllabus(id);
   revalidatePath("/assignments");
   revalidatePath("/");
+}
+
+export async function uploadSyllabus(classId: string, formData: FormData) {
+  const file = formData.get("file");
+  if (!(file instanceof File)) throw new Error("No file provided");
+  if (file.type !== "application/pdf") throw new Error("Only PDF files are accepted");
+  if (file.size > 10 * 1024 * 1024) throw new Error("File too large (10MB max)");
+  const buf = Buffer.from(await file.arrayBuffer());
+  const rel = await store.saveSyllabus(classId, buf);
+  const classes = await store.getClasses();
+  await store.setClasses(
+    classes.map((c) =>
+      c.id === classId ? { ...c, syllabusPath: rel, syllabusName: file.name } : c,
+    ),
+  );
+  revalidatePath("/assignments");
+  revalidatePath(`/assignments/${classId}`);
+}
+
+export async function removeSyllabus(classId: string) {
+  await store.deleteSyllabus(classId);
+  const classes = await store.getClasses();
+  await store.setClasses(
+    classes.map((c) => (c.id === classId ? { ...c, syllabusPath: null, syllabusName: null } : c)),
+  );
+  revalidatePath("/assignments");
+  revalidatePath(`/assignments/${classId}`);
 }
 
 /* ---------------- assignments ---------------- */

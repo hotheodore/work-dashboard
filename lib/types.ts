@@ -6,6 +6,10 @@ export interface Klass {
   code: string;
   color: string;
   term: string;
+  professor?: string;
+  location?: string;
+  syllabusPath?: string | null; // storage-relative path, e.g. syllabus/<classId>.pdf
+  syllabusName?: string | null; // original filename, shown in UI
 }
 
 export interface Assignment {

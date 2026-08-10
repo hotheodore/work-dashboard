@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addAssignment, addClass, deleteClass } from "@/lib/actions";
+import { addAssignment, addClass, deleteClass, updateClass } from "@/lib/actions";
 import { Button, Field, Modal, inputClass } from "@/components/ui";
 import type { Klass, Status } from "@/lib/types";
 
@@ -10,14 +10,14 @@ export function AddClassButton() {
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", code: "", term: "" });
+  const [form, setForm] = useState({ name: "", code: "", term: "", professor: "", location: "" });
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) return;
     start(async () => {
       await addClass({ ...form, color: "" });
-      setForm({ name: "", code: "", term: "" });
+      setForm({ name: "", code: "", term: "", professor: "", location: "" });
       setOpen(false);
       router.refresh();
     });
@@ -53,6 +53,22 @@ export function AddClassButton() {
               value={form.term}
               onChange={(e) => setForm({ ...form, term: e.target.value })}
               placeholder="Fall 2026"
+            />
+          </Field>
+          <Field label="Professor">
+            <input
+              className={inputClass}
+              value={form.professor}
+              onChange={(e) => setForm({ ...form, professor: e.target.value })}
+              placeholder="Jane Smith"
+            />
+          </Field>
+          <Field label="Location">
+            <input
+              className={inputClass}
+              value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="MWF 11:30–12:20, CSI Room 553"
             />
           </Field>
           <div className="flex justify-end gap-2 pt-2">
@@ -196,6 +212,85 @@ export function AddAssignmentButton({
             </Button>
             <Button type="submit" variant="primary" disabled={pending}>
               {pending ? "Saving…" : "Add assignment"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+    </>
+  );
+}
+
+export function EditClassButton({ klass }: { klass: Klass }) {
+  const [open, setOpen] = useState(false);
+  const [pending, start] = useTransition();
+  const router = useRouter();
+  const [form, setForm] = useState({
+    name: klass.name,
+    code: klass.code,
+    term: klass.term,
+    professor: klass.professor ?? "",
+    location: klass.location ?? "",
+  });
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    start(async () => {
+      await updateClass(klass.id, form);
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <Button onClick={() => setOpen(true)}>Edit</Button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Edit class">
+        <form onSubmit={submit} className="space-y-3">
+          <Field label="Name">
+            <input
+              className={inputClass}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              autoFocus
+            />
+          </Field>
+          <Field label="Code">
+            <input
+              className={inputClass}
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value })}
+            />
+          </Field>
+          <Field label="Term">
+            <input
+              className={inputClass}
+              value={form.term}
+              onChange={(e) => setForm({ ...form, term: e.target.value })}
+            />
+          </Field>
+          <Field label="Professor">
+            <input
+              className={inputClass}
+              value={form.professor}
+              onChange={(e) => setForm({ ...form, professor: e.target.value })}
+              placeholder="Jane Smith"
+            />
+          </Field>
+          <Field label="Location">
+            <input
+              className={inputClass}
+              value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="MWF 11:30–12:20, CSI Room 553"
+            />
+          </Field>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={pending}>
+              {pending ? "Saving…" : "Save"}
             </Button>
           </div>
         </form>

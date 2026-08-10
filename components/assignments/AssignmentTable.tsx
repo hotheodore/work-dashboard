@@ -19,7 +19,7 @@ export default function AssignmentTable({
   classLabel,
 }: {
   assignments: Assignment[];
-  classLabel?: (classId: string) => string;
+  classLabel?: Record<string, string>;
 }) {
   const [sort, setSort] = useState<SortKey>("dueDate");
   const [pending, start] = useTransition();
@@ -77,8 +77,8 @@ export default function AssignmentTable({
                 <span className={a.status === "done" ? "text-muted line-through" : ""}>
                   {a.title}
                 </span>
-                {classLabel && (
-                  <span className="ml-2 text-xs text-faint">{classLabel(a.classId)}</span>
+                {classLabel?.[a.classId] && (
+                  <span className="ml-2 text-xs text-faint">{classLabel[a.classId]}</span>
                 )}
               </td>
               <td className="px-3 py-2 tabular-nums text-muted">{a.dueDate}</td>

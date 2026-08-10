@@ -1,9 +1,14 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
 import { Card, StatGrid, StatTile } from "@/components/ui";
-import { AddAssignmentButton, DeleteClassButton } from "@/components/assignments/AssignmentForms";
+import {
+  AddAssignmentButton,
+  DeleteClassButton,
+  EditClassButton,
+} from "@/components/assignments/AssignmentForms";
 import AssignmentTable from "@/components/assignments/AssignmentTable";
 import SyllabusPaste from "@/components/assignments/SyllabusPaste";
+import SyllabusUpload from "@/components/assignments/SyllabusUpload";
 import DueTimeline from "@/components/charts/DueTimeline";
 import { getAssignments, getClasses } from "@/lib/store";
 import { timelineData } from "@/lib/derive";
@@ -25,14 +30,19 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
     <>
       <PageHeader
         title={klass.name}
-        subtitle={[klass.code, klass.term].filter(Boolean).join(" · ")}
+        subtitle={[klass.code, klass.term, klass.professor && `Prof. ${klass.professor}`]
+          .filter(Boolean)
+          .join(" · ")}
         action={
           <div className="flex items-center gap-2">
+            <EditClassButton klass={klass} />
             <DeleteClassButton id={klass.id} name={klass.code || klass.name} />
             <AddAssignmentButton classes={classes} defaultClassId={klass.id} />
           </div>
         }
       />
+
+      {klass.location && <p className="-mt-4 mb-4 text-sm text-muted">{klass.location}</p>}
 
       <StatGrid>
         <StatTile
@@ -68,6 +78,13 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
       <div className="mt-6 space-y-6">
         <Card title="All assignments" bodyClass="px-2 pb-2">
           <AssignmentTable assignments={mine} />
+        </Card>
+        <Card title="Syllabus file">
+          <SyllabusUpload
+            classId={klass.id}
+            syllabusPath={klass.syllabusPath}
+            syllabusName={klass.syllabusName}
+          />
         </Card>
         <Card title="Paste a syllabus">
           <SyllabusPaste classId={klass.id} />

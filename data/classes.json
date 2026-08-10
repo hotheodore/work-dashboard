@@ -1,1 +1,90 @@
-[]
+[
+  {
+    "id": "c-engr2181",
+    "name": "Engineering Design III",
+    "code": "ENGR 2181",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Eli Iglesias",
+    "location": "W 1:30 PM–4:20 PM, Center for the Sciences and Innovation Room 258 / Room 282",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-engr2320",
+    "name": "Electric Circuits",
+    "code": "ENGR 2320",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Farzan Aminian",
+    "location": "MWF 11:30 AM–12:20 PM, Center for the Sciences and Innovation Room 553",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-engr2314",
+    "name": "Mechanics II",
+    "code": "ENGR 2314",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Jack Leifer",
+    "location": "TR 9:55 AM–11:10 AM, Center for the Sciences and Innovation Room 448",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-engr2120",
+    "name": "Electric Circuits Laboratory",
+    "code": "ENGR 2120",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Joshua Schwartz",
+    "location": "R 2:10 PM–4:50 PM, Center for the Sciences and Innovation Room 553",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-musc1340",
+    "name": "Introduction to Music History",
+    "code": "MUSC 1340",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Carl Leafstedt",
+    "location": "MWF 10:30 AM–11:20 AM, Dicke Smith Art Music Room 347",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-chem1311",
+    "name": "General Chemistry I",
+    "code": "CHEM 1311",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Calvin Jon Leonen",
+    "location": "TR 11:20 AM–12:35 PM, Marrs McLean Hall Room 170",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-chem1111",
+    "name": "General Chemistry Lab for Engineers",
+    "code": "CHEM 1111",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Nicholas Vitti",
+    "location": "M 1:30 PM–4:30 PM, Center for the Sciences and Innovation Room 240",
+    "syllabusPath": null,
+    "syllabusName": null
+  },
+  {
+    "id": "c-engr3339",
+    "name": "Mechanics of Materials",
+    "code": "ENGR 3339",
+    "color": "",
+    "term": "Fall 2026",
+    "professor": "Jack Leifer",
+    "location": "TR 7:00 PM–8:15 PM, Center for the Sciences and Innovation Room 553",
+    "syllabusPath": null,
+    "syllabusName": null
+  }
+]

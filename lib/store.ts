@@ -2,7 +2,15 @@ import "server-only";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { blobEnabled, blobListNames, blobRead, blobWrite } from "./blob-store";
+import {
+  blobDelete,
+  blobEnabled,
+  blobListNames,
+  blobRead,
+  blobReadBinary,
+  blobWrite,
+  blobWriteBinary,
+} from "./blob-store";
 import type {
   Application,
   Assignment,
@@ -99,6 +107,69 @@ async function writeRaw(relPath: string, body: string, contentType: string): Pro
   await writeToDir(SCRATCH_DIR, relPath, body);
 }
 
+async function readRawBinary(relPath: string): Promise<Buffer | null> {
+  if (blobBacked()) {
+    try {
+      return await blobReadBinary(relPath);
+    } catch {
+      return null;
+    }
+  }
+  for (const file of dirsFor(relPath)) {
+    try {
+      return await fs.readFile(file);
+    } catch {
+      /* try the next location */
+    }
+  }
+  return null;
+}
+
+async function writeRawBinary(relPath: string, body: Buffer, contentType: string): Promise<void> {
+  if (blobBacked()) {
+    await blobWriteBinary(relPath, body, contentType);
+    return;
+  }
+  if (!diskReadOnly) {
+    try {
+      const target = path.join(DATA_DIR, relPath);
+      const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(tmp, body);
+      await fs.rename(tmp, target);
+      return;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code ?? "";
+      if (!READ_ONLY_CODES.has(code)) throw e;
+      diskReadOnly = true;
+      console.warn(`data dir is read-only (${code}); falling back to ${SCRATCH_DIR}`);
+    }
+  }
+  const target = path.join(SCRATCH_DIR, relPath);
+  const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  await fs.writeFile(tmp, body);
+  await fs.rename(tmp, target);
+}
+
+async function deleteRaw(relPath: string): Promise<void> {
+  if (blobBacked()) {
+    try {
+      await blobDelete(relPath);
+    } catch {
+      /* already gone */
+    }
+    return;
+  }
+  for (const dir of [DATA_DIR, SCRATCH_DIR]) {
+    try {
+      await fs.unlink(path.join(dir, relPath));
+    } catch {
+      /* not present here */
+    }
+  }
+}
+
 async function read<T>(file: string, fallback: T): Promise<T> {
   const raw = await readRaw(file);
   if (!raw?.trim()) return fallback;
@@ -191,6 +262,25 @@ export async function listTailored(): Promise<string[]> {
     }
   }
   return [...names];
+}
+
+/** Uploaded syllabus PDF, one file per class — overwrites any prior upload. */
+export async function saveSyllabus(classId: string, body: Buffer): Promise<string> {
+  const rel = `syllabus/${classId}.pdf`;
+  await writeRawBinary(rel, body, "application/pdf");
+  return rel;
+}
+
+export async function readSyllabus(relPath: string): Promise<Buffer | null> {
+  // path is app-generated (class id), but keep it inside the data root regardless
+  const target = path.resolve(DATA_DIR, relPath);
+  if (target !== DATA_DIR && !target.startsWith(DATA_DIR + path.sep)) return null;
+  const rel = path.relative(DATA_DIR, target).split(path.sep).join("/");
+  return readRawBinary(rel);
+}
+
+export async function deleteSyllabus(classId: string): Promise<void> {
+  await deleteRaw(`syllabus/${classId}.pdf`);
 }
 
 export const newId = () =>

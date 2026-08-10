@@ -1,5 +1,5 @@
 import "server-only";
-import { get, list, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 
 /**
  * Vercel Blob backend for `store.ts`.
@@ -40,4 +40,28 @@ export async function blobListNames(relDir: string): Promise<string[]> {
   const prefix = key(relDir.endsWith("/") ? relDir : `${relDir}/`);
   const { blobs } = await list({ prefix, limit: 1000 });
   return blobs.map((b) => b.pathname.slice(prefix.length)).filter(Boolean);
+}
+
+export async function blobReadBinary(relPath: string): Promise<Buffer | null> {
+  const result = await get(key(relPath), { access: "private", useCache: false });
+  if (!result?.stream) return null;
+  return Buffer.from(await new Response(result.stream).arrayBuffer());
+}
+
+export async function blobWriteBinary(
+  relPath: string,
+  body: Buffer,
+  contentType: string,
+): Promise<void> {
+  await put(key(relPath), body, {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType,
+    cacheControlMaxAge: 0,
+  });
+}
+
+export async function blobDelete(relPath: string): Promise<void> {
+  await del(key(relPath));
 }
