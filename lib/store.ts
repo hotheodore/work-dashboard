@@ -1,5 +1,6 @@
 import "server-only";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { blobEnabled, blobListNames, blobRead, blobWrite } from "./blob-store";
 import type {
@@ -15,6 +16,9 @@ import type {
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
+/** Scratch copy used only when the bundled data dir turns out to be read-only. */
+const SCRATCH_DIR = path.join(os.tmpdir(), "work-dashboard-data");
+
 /**
  * Two backends behind one interface: local disk for `next dev`, Vercel Blob
  * once BLOB_READ_WRITE_TOKEN is set. A hosted serverless filesystem is
@@ -23,26 +27,76 @@ const DATA_DIR = path.join(process.cwd(), "data");
  */
 const blobBacked = () => blobEnabled();
 
-async function readRaw(relPath: string): Promise<string | null> {
-  try {
-    if (blobBacked()) return await blobRead(relPath);
-    return await fs.readFile(path.join(DATA_DIR, relPath), "utf8");
-  } catch {
-    return null;
-  }
+/**
+ * Deploying without a Blob store used to surface as
+ * `EROFS: read-only file system, open '/var/task/data/...tmp'` from whichever
+ * write happened to run first. Once a write proves the bundle is read-only we
+ * move to the OS temp dir instead: writes succeed, and the caller gets a
+ * warning it can show rather than a stack trace. Temp is per-instance and
+ * wiped between cold starts, so it is a fallback, not the intended backend.
+ */
+let diskReadOnly = false;
+
+/** Set when disk writes are landing somewhere that will not survive; UI shows it. */
+export function storageWarning(): string | null {
+  if (blobBacked()) return null;
+  if (diskReadOnly)
+    return "No BLOB_READ_WRITE_TOKEN — writes are going to a temp dir that is discarded when the instance recycles. Connect a Vercel Blob store to persist data.";
+  return null;
 }
+
+function dirsFor(relPath: string): string[] {
+  // Scratch first when it is live: it holds the newer copy, the bundle the seed.
+  const dirs = diskReadOnly ? [SCRATCH_DIR, DATA_DIR] : [DATA_DIR];
+  return dirs.map((d) => path.join(d, relPath));
+}
+
+async function readRaw(relPath: string): Promise<string | null> {
+  if (blobBacked()) {
+    try {
+      return await blobRead(relPath);
+    } catch {
+      return null;
+    }
+  }
+  for (const file of dirsFor(relPath)) {
+    try {
+      return await fs.readFile(file, "utf8");
+    } catch {
+      /* try the next location */
+    }
+  }
+  return null;
+}
+
+/** Atomic write: temp file then rename, so a crash mid-write cannot truncate the real file. */
+async function writeToDir(dir: string, relPath: string, body: string): Promise<void> {
+  const target = path.join(dir, relPath);
+  const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
+  await fs.mkdir(path.dirname(target), { recursive: true });
+  await fs.writeFile(tmp, body, "utf8");
+  await fs.rename(tmp, target);
+}
+
+const READ_ONLY_CODES = new Set(["EROFS", "EACCES", "EPERM"]);
 
 async function writeRaw(relPath: string, body: string, contentType: string): Promise<void> {
   if (blobBacked()) {
     await blobWrite(relPath, body, contentType);
     return;
   }
-  // Atomic write: temp file then rename, so a crash mid-write cannot truncate the real file.
-  const target = path.join(DATA_DIR, relPath);
-  const tmp = `${target}.${process.pid}.${Math.random().toString(36).slice(2, 8)}.tmp`;
-  await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.writeFile(tmp, body, "utf8");
-  await fs.rename(tmp, target);
+  if (!diskReadOnly) {
+    try {
+      await writeToDir(DATA_DIR, relPath, body);
+      return;
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code ?? "";
+      if (!READ_ONLY_CODES.has(code)) throw e;
+      diskReadOnly = true;
+      console.warn(`data dir is read-only (${code}); falling back to ${SCRATCH_DIR}`);
+    }
+  }
+  await writeToDir(SCRATCH_DIR, relPath, body);
 }
 
 async function read<T>(file: string, fallback: T): Promise<T> {
@@ -125,10 +179,18 @@ export async function readTailored(relPath: string): Promise<string | null> {
 export async function listTailored(): Promise<string[]> {
   try {
     if (blobBacked()) return (await blobListNames("tailored")).filter((f) => f.endsWith(".md"));
-    return (await fs.readdir(path.join(DATA_DIR, "tailored"))).filter((f) => f.endsWith(".md"));
   } catch {
     return [];
   }
+  const names = new Set<string>();
+  for (const dir of dirsFor("tailored")) {
+    try {
+      for (const f of await fs.readdir(dir)) if (f.endsWith(".md")) names.add(f);
+    } catch {
+      /* directory may not exist in this location */
+    }
+  }
+  return [...names];
 }
 
 export const newId = () =>

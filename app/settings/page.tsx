@@ -31,6 +31,7 @@ export default async function SettingsPage() {
         initial={settings}
         fetchedAt={listings.fetchedAt}
         cachedCount={listings.jobs.length}
+        sources={listings.sources ?? []}
       />
     </>
   );

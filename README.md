@@ -13,7 +13,16 @@ KPI tiles, the assignments due today, the day's internship picks, a deadline cou
 One page per class, each with its own table and charts. Add work manually, or paste a syllabus and let Claude extract the schedule — every extracted item is shown for review before anything is written to disk.
 
 ### Internships
-Five previously unseen postings surfaced each day from the public [SimplifyJobs/Summer2026-Internships](https://github.com/SimplifyJobs/Summer2026-Internships) feed, an application pipeline to track each one through its stages, and per-job resume tailoring with a generated cover letter draft.
+Five previously unseen postings surfaced each day, merged and deduplicated across several sources, an application pipeline to track each one through its stages, and per-job resume tailoring with a generated cover letter draft.
+
+| Source | Needs | Notes |
+| --- | --- | --- |
+| [vanshb03/Summer2027-Internships](https://github.com/vanshb03/Summer2027-Internships) | nothing | Public `listings.json`; wins when a posting appears in more than one feed |
+| [SimplifyJobs/Summer2026-Internships](https://github.com/SimplifyJobs/Summer2026-Internships) | nothing | Public `listings.json` |
+| Handshake | `HANDSHAKE_COOKIE`, `HANDSHAKE_HOST` | No public student API — the adapter replays your own signed-in session, so it stops working when that cookie expires |
+| Indeed | `SERPAPI_KEY`, or `INDEED_SEARCH_URL` | Indeed retired its open API and blocks server-side requests, so postings come through a search provider you hold a key for |
+
+A source with missing credentials is reported as skipped in Settings; a source that errors is reported with its message. Neither stops the others from landing.
 
 ### Resume, Calendar, Notes, and Settings
 A resume of record that feeds the tailoring step, a month view of every deadline across all classes and applications, interview-prep notes, and filters plus a manual listings refresh.
@@ -63,7 +72,14 @@ The app runs on Vercel. A serverless filesystem is read-only and discarded betwe
    | `BLOB_READ_WRITE_TOKEN` | yes | Added by the Blob store; switches storage off the filesystem |
    | `DASHBOARD_PASSWORD` | yes | The password for the sign-in page. Without it the site is public |
    | `ANTHROPIC_API_KEY` | optional | Resume tailoring, cover letters, syllabus parsing |
-   | `CRON_SECRET` | optional | Lets the twice-daily listings cron through the password gate |
+   | `CRON_SECRET` | optional | Lets the daily listings cron through the password gate |
+   | `HANDSHAKE_COOKIE` | optional | Enables the Handshake source — the `Cookie` header from a signed-in request |
+   | `HANDSHAKE_HOST` | optional | Your school's host, e.g. `myschool.joinhandshake.com` (default `app.joinhandshake.com`) |
+   | `SERPAPI_KEY` | optional | Enables the Indeed source via SerpApi's `indeed` engine |
+   | `INDEED_SEARCH_URL` | optional | Alternative to `SERPAPI_KEY`: any JSON search endpoint, with `{query}` / `{location}` placeholders |
+   | `INDEED_API_KEY` | optional | Sent as `Authorization: Bearer` with `INDEED_SEARCH_URL` |
+
+   **Without `BLOB_READ_WRITE_TOKEN` the deploy cannot persist anything.** The bundle at `/var/task` is read-only, so `lib/store.ts` falls back to the OS temp dir — writes stop failing with `EROFS`, but they vanish when the instance recycles, and Settings shows a warning saying so.
 
 4. Copy `BLOB_READ_WRITE_TOKEN` into your local `.env.local` and seed the store with the data already on your machine:
 
@@ -75,7 +91,7 @@ The app runs on Vercel. A serverless filesystem is read-only and discarded betwe
 
 5. Redeploy. Visiting any page now asks for `DASHBOARD_PASSWORD` first.
 
-Access control lives in `proxy.ts`: every route except `/login` requires a cookie holding a SHA-256 of the password, API routes get a `401` instead of a redirect, and the whole gate is skipped when `DASHBOARD_PASSWORD` is unset. `vercel.json` schedules the listings refresh at 07:00 and 19:00 UTC.
+Access control lives in `proxy.ts`: every route except `/login` requires a cookie holding a SHA-256 of the password, API routes get a `401` instead of a redirect, and the whole gate is skipped when `DASHBOARD_PASSWORD` is unset. `vercel.json` schedules the listings refresh at 12:00 UTC daily (the Hobby plan allows one cron run per day).
 
 ## How data is stored
 

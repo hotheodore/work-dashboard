@@ -1,29 +1,33 @@
 import "server-only";
 import * as store from "./store";
-import { filterJobs, normalizeListing, todayKey } from "./jobFilters";
-import type { Job } from "./types";
-
-export const LISTINGS_URL =
-  "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/.github/scripts/listings.json";
+import { filterJobs, todayKey } from "./jobFilters";
+import { fetchAllSources } from "./sources";
+import type { Job, ListingsCache } from "./types";
 
 const REFRESH_MS = 12 * 60 * 60 * 1000; // at most one upstream fetch per 12h
 
-export async function refreshListings(force = false) {
-  const cache = await store.getListings();
+/**
+ * Pulls every configured source (see `lib/sources`), merges and dedupes.
+ * Throws only when *no* source produced anything — a partial run is kept, with
+ * each source's outcome recorded in `cache.sources`.
+ */
+export async function refreshListings(force = false): Promise<ListingsCache> {
+  const [cache, settings] = await Promise.all([store.getListings(), store.getSettings()]);
   const fresh =
     cache.fetchedAt && Date.now() - new Date(cache.fetchedAt).getTime() < REFRESH_MS;
   if (fresh && !force && cache.jobs.length) return cache;
 
-  const res = await fetch(LISTINGS_URL, { cache: "no-store" });
-  if (!res.ok) throw new Error(`listings fetch failed: ${res.status}`);
-  const raw = (await res.json()) as Record<string, unknown>[];
+  const { jobs, runs } = await fetchAllSources(settings);
 
-  const jobs = raw
-    .map(normalizeListing)
-    .filter((j): j is Job => j !== null && j.active)
-    .sort((a, b) => b.postedAt.localeCompare(a.postedAt));
+  if (!jobs.length) {
+    const why = runs
+      .filter((r) => r.status !== "ok")
+      .map((r) => `${r.label}: ${r.detail ?? r.status}`)
+      .join("; ");
+    throw new Error(`every listings source came back empty — ${why || "no sources configured"}`);
+  }
 
-  const next = { fetchedAt: new Date().toISOString(), jobs };
+  const next: ListingsCache = { fetchedAt: new Date().toISOString(), jobs, sources: runs };
   await store.setListings(next);
   return next;
 }

@@ -1,7 +1,7 @@
 /** Smallest thing that fails if the grade / streak / job-filter logic breaks: npm run check */
 import assert from "node:assert/strict";
 import { classGrade, streak } from "../lib/grades";
-import { filterJobs, normalizeListing, todayKey } from "../lib/jobFilters";
+import { dedupeJobs, filterJobs, normalizeListing, todayKey } from "../lib/jobFilters";
 import type { Assignment, Job, Settings } from "../lib/types";
 
 const a = (p: Partial<Assignment>): Assignment => ({
@@ -66,6 +66,8 @@ const raw = normalizeListing({
 });
 assert.ok(raw, "a well-formed listing must normalize");
 assert.equal(raw.company, "Acme");
+assert.equal(raw.id, "github:j1", "ids are namespaced by source");
+assert.equal(raw.source, "github");
 assert.equal(normalizeListing({ company_name: "Acme" }), null, "no role/url means no job");
 
 const jobs: Job[] = [
@@ -84,10 +86,22 @@ const settings: Settings = {
 };
 assert.deepEqual(
   filterJobs(jobs, settings, []).map((j) => j.id),
-  ["j1"],
+  ["github:j1"],
   "keyword, season, remote, and active filters must all apply",
 );
-assert.deepEqual(filterJobs(jobs, settings, ["j1"]), [], "seen jobs never come back");
+assert.deepEqual(filterJobs(jobs, settings, ["github:j1"]), [], "seen jobs never come back");
+
+// --- multi-source dedupe ---
+assert.deepEqual(
+  dedupeJobs([
+    { ...raw, id: "vansh2027:a", source: "vansh2027" },
+    { ...raw, id: "simplify2026:a", source: "simplify2026" }, // same url
+    { ...raw, id: "simplify2026:b", url: "https://example.com/j2" },
+    { ...raw, id: "simplify2026:c", active: false },
+  ]).map((j) => j.id),
+  ["vansh2027:a", "simplify2026:b"],
+  "same apply URL collapses to the first source; inactive postings drop",
+);
 
 assert.match(todayKey(new Date(2026, 0, 5)), /^2026-01-05$/);
 

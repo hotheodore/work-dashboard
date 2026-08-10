@@ -49,6 +49,7 @@ export interface Job {
   sponsorship?: string;
   terms: string[];
   active: boolean;
+  source: string; // id of the lib/sources adapter that produced it
 }
 
 export interface ResumeBullet {
@@ -89,9 +90,19 @@ export interface Settings {
   picksPerDay: number;
 }
 
+/** One adapter's outcome in the last refresh — surfaced in Settings. */
+export interface SourceRun {
+  id: string;
+  label: string;
+  status: "ok" | "skipped" | "error";
+  count: number;
+  detail?: string;
+}
+
 export interface ListingsCache {
   fetchedAt: string | null;
   jobs: Job[];
+  sources?: SourceRun[];
 }
 
 export interface DailyPicks {

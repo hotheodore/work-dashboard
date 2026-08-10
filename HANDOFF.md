@@ -67,8 +67,9 @@ lib/
   types.ts        shared types, no logic
   store.ts        the ONLY module that touches fs (server-only)
   actions.ts      server actions — every mutation goes through here
-  jobs.ts         server-side: upstream fetch, cache, daily picks (server-only)
-  jobFilters.ts   pure: normalizeListing, filterJobs, todayKey (no fs, testable)
+  jobs.ts         server-side: refresh across sources, cache, daily picks (server-only)
+  sources/        one adapter per listings backend + fetchAllSources (github, handshake, indeed)
+  jobFilters.ts   pure: normalizeListing, dedupeJobs, filterJobs, todayKey (no fs, testable)
   grades.ts       pure: weighted grade math, activity streak
   derive.ts       pure: chart data + deadline shaping
   chartTheme.ts   series palette per theme + live theme detection
@@ -88,7 +89,7 @@ scripts/
 
 ## 5. Data layer
 
-Files in `data/`, all written atomically (temp file + rename), so a crash mid-write can't truncate one.
+Files in `data/`, all written atomically (temp file + rename), so a crash mid-write can't truncate one. With `BLOB_READ_WRITE_TOKEN` set, the same files live in Vercel Blob instead. Third case: deployed *without* a Blob token, where `/var/task/data` is read-only — the first write catches `EROFS`/`EACCES`/`EPERM`, switches to the OS temp dir for the rest of the process, and `storageWarning()` reports that writes will not survive. Reads then check temp first and fall back to the bundled copy as a seed.
 
 | File | Contents |
 |---|---|
@@ -133,7 +134,11 @@ Overview shows class cards with completion, next due, and current grade. The cla
 
 ### Internships
 
-**Source**: `SimplifyJobs/Summer2026-Internships`, the `listings.json` on the `dev` branch. The file is >10 MB, so it is fetched in a route handler, filtered to active postings immediately, and only the trimmed set is cached. Refresh is throttled to once per 12 hours; Settings forces one. All upstream field knowledge lives in `normalizeListing` — a schema change upstream touches exactly that one function.
+**Sources** (`lib/sources/`): one adapter per backend, listed in priority order in `SOURCES` — `vanshb03/Summer2027-Internships`, `SimplifyJobs/Summer2026-Internships` (both public `listings.json` files, same schema, so one `github.ts` adapter covers both), Handshake, and Indeed. `fetchAllSources` runs them in parallel with a 25 s per-source timeout, merges, and dedupes on `host + pathname` of the apply URL — the earlier source wins. Each adapter reports `ok` / `skipped` (missing credentials) / `error` (with the message), stored on the cache as `sources` and shown in Settings. Only an empty *merged* result throws.
+
+Handshake and Indeed are credential-gated by necessity, not by choice: Handshake has no public student API, so the adapter replays a session cookie you paste in (`HANDSHAKE_COOKIE`, `HANDSHAKE_HOST`) against an internal endpoint whose response shape is not contracted — parsing is deliberately tolerant. Indeed retired its open API and 403s server-side requests, so `indeed.ts` goes through a provider you hold a key for (`SERPAPI_KEY`, or `INDEED_SEARCH_URL` with `{query}` / `{location}` placeholders).
+
+The GitHub files are >10 MB combined, so they are fetched in a route handler, filtered to active postings immediately, and only the trimmed set is cached. Refresh is throttled to once per 12 hours; Settings forces one. Upstream field knowledge for the GitHub feeds lives in `normalizeListing`; each other adapter owns its own mapping. Job ids are namespaced (`simplify2026:…`, `handshake-…`) so two feeds carrying the same upstream id stay distinct.
 
 **Daily picks** (`lib/jobs.ts:getDailyPicks`): filter by active, role keywords, location/remote, season, and not-yet-seen; rank newest first with keyword-match strength as tiebreak; take `picksPerDay`; persist under today's date so a refresh never reshuffles.
 

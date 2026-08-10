@@ -1,4 +1,5 @@
 import { refreshListings } from "@/lib/jobs";
+import { storageWarning } from "@/lib/store";
 
 export const maxDuration = 60;
 
@@ -12,11 +13,16 @@ export async function POST(request: Request) {
     return Response.json({
       fetchedAt: cache.fetchedAt,
       count: cache.jobs.length,
+      sources: cache.sources ?? [],
+      warning: storageWarning(),
       sample: cache.jobs[0] ?? null,
     });
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : "refresh failed" },
+      {
+        error: e instanceof Error ? e.message : "refresh failed",
+        warning: storageWarning(),
+      },
       { status: 502 },
     );
   }

@@ -6,7 +6,7 @@ const str = (v: unknown) => (typeof v === "string" ? v : "");
 const arr = (v: unknown) => (Array.isArray(v) ? v.map(String) : []);
 
 /** Upstream schema lives in exactly one place — a field rename only touches this function. */
-export function normalizeListing(raw: RawListing): Job | null {
+export function normalizeListing(raw: RawListing, source = "github"): Job | null {
   const company = str(raw.company_name) || str(raw.company);
   const role = str(raw.title) || str(raw.role);
   const url = str(raw.url) || str(raw.link);
@@ -21,7 +21,9 @@ export function normalizeListing(raw: RawListing): Job | null {
         : new Date(0).toISOString();
 
   return {
-    id: str(raw.id) || `${company}-${role}-${url}`.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    // ids are namespaced by source so two feeds carrying the same upstream id
+    // (the 2027 repo is seeded from the 2026 one) stay distinguishable
+    id: `${source}:${str(raw.id) || `${company}-${role}-${url}`.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     company,
     role,
     url,
@@ -31,7 +33,32 @@ export function normalizeListing(raw: RawListing): Job | null {
     sponsorship: str(raw.sponsorship) || undefined,
     terms: arr(raw.terms),
     active: raw.active !== false && raw.is_visible !== false,
+    source,
   };
+}
+
+/** Same posting on two feeds: keep one. Apply URL is the closest thing to a natural key. */
+function dedupeKey(job: Job): string {
+  try {
+    const u = new URL(job.url);
+    return `${u.host}${u.pathname}`.toLowerCase();
+  } catch {
+    return `${job.company}|${job.role}`.toLowerCase();
+  }
+}
+
+/** Drops inactive postings and duplicates; earlier jobs win, so pass sources in priority order. */
+export function dedupeJobs(jobs: Job[]): Job[] {
+  const seen = new Set<string>();
+  const out: Job[] = [];
+  for (const job of jobs) {
+    if (!job.active) continue;
+    const key = dedupeKey(job);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(job);
+  }
+  return out;
 }
 
 function matchScore(job: Job, keywords: string[]): number {
