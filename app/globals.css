@@ -1,60 +1,75 @@
 @import "tailwindcss";
 
-/* ---- design tokens: light ---- */
+/* ---- design tokens: light (warm off-white) ---- */
 :root {
-  --bg: #f8fafc;
+  --bg: #faf9f7;
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --text-muted: #475569;
-  --text-faint: #94a3b8;
-  --accent: #4f46e5;
-  --accent-soft: #eef2ff;
+  --surface-2: #f2f0ec;
+  --border: #e5e1da;
+  --text: #23211d;
+  --text-muted: #6b665e;
+  /* Used for the uppercase eyebrow labels, so it has to clear AA — not just decoration. */
+  --text-faint: #757064;
+  --accent: #3b6ea8;
   --accent-text: #ffffff;
-  --ok: #059669;
-  --warn: #d97706;
-  --danger: #dc2626;
-  --shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
-  --radius: 0.75rem;
+  --ok: #157f5a;
+  --warn: #b4700f;
+  --danger: #c0392b;
+  --shadow: 0 1px 2px rgb(35 33 29 / 0.04), 0 6px 20px -12px rgb(35 33 29 / 0.14);
+  --shadow-lift: 0 2px 4px rgb(35 33 29 / 0.05), 0 12px 28px -14px rgb(35 33 29 / 0.22);
+  --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
-/* ---- design tokens: dark (system default) ---- */
+/* ---- design tokens: dark (warm gray) ---- */
+/* Applied for system-dark unless explicitly overridden to light, and for the
+   explicit dark toggle. Both selectors share one block so they cannot drift. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #020617;
-    --surface: #0f172a;
-    --surface-2: #1e293b;
-    --border: #1e293b;
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --text-faint: #64748b;
-    --accent: #818cf8;
-    --accent-soft: #1e1b4b;
-    --accent-text: #0b1020;
-    --ok: #34d399;
-    --warn: #fbbf24;
-    --danger: #f87171;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --bg: #262624;
+    --surface: #30302e;
+    --surface-2: #3a3a37;
+    --border: #45453f;
+    --text: #ecebe8;
+    --text-muted: #a8a49c;
+    --text-faint: #9d988e;
+    --accent: #6a9fd8;
+    --accent-text: #16273d;
+    --ok: #6ec9a0;
+    --warn: #e0b25c;
+    --danger: #e88b7d;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px -12px rgb(0 0 0 / 0.5);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 12px 28px -14px rgb(0 0 0 / 0.6);
+    --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
   }
 }
 
-/* ---- design tokens: dark (explicit toggle wins) ---- */
 :root[data-theme="dark"] {
-  --bg: #020617;
-  --surface: #0f172a;
-  --surface-2: #1e293b;
-  --border: #1e293b;
-  --text: #e2e8f0;
-  --text-muted: #94a3b8;
-  --text-faint: #64748b;
-  --accent: #818cf8;
-  --accent-soft: #1e1b4b;
-  --accent-text: #0b1020;
-  --ok: #34d399;
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --bg: #262624;
+  --surface: #30302e;
+  --surface-2: #3a3a37;
+  --border: #45453f;
+  --text: #ecebe8;
+  --text-muted: #a8a49c;
+  --text-faint: #9d988e;
+  --accent: #6a9fd8;
+  --accent-text: #16273d;
+  --ok: #6ec9a0;
+  --warn: #e0b25c;
+  --danger: #e88b7d;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px -12px rgb(0 0 0 / 0.5);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 12px 28px -14px rgb(0 0 0 / 0.6);
+  --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* Derived from --accent so the tint always carries the surface temperature.
+   Declared once, outside the theme blocks — the mix re-resolves per theme. */
+:root {
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, var(--surface));
+  --accent-ring: color-mix(in oklab, var(--accent) 35%, transparent);
+  --radius: 0.875rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1.25rem;
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @theme inline {
@@ -68,9 +83,13 @@
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
   --color-accent-text: var(--accent-text);
+  --color-accent-ring: var(--accent-ring);
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
+  --radius-card: var(--radius);
+  --radius-card-sm: var(--radius-sm);
+  --radius-card-lg: var(--radius-lg);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -84,14 +103,40 @@ html { color-scheme: light; }
 body {
   background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
+
+h1, h2, h3 { letter-spacing: -0.02em; }
+
+/* Numbers that sit in columns or change in place must not reflow. */
+.tabular { font-variant-numeric: tabular-nums; }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), var(--card-highlight);
+}
+
+/* Opt-in: only cards that are actually a link or button should move. */
+.card-interactive {
+  transition: box-shadow 0.2s var(--ease-out), transform 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out);
+}
+.card-interactive:hover {
+  box-shadow: var(--shadow-lift), var(--card-highlight);
+  transform: translateY(-1px);
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .card-interactive:hover { transform: none; }
+}

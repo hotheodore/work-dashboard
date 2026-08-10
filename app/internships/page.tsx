@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { SlidersHorizontal } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { Card, StatTile } from "@/components/ui";
+import { Card, StatGrid, StatTile } from "@/components/ui";
 import PickList from "@/components/internships/PickList";
 import Pipeline from "@/components/internships/Pipeline";
 import AppFunnel from "@/components/charts/AppFunnel";
@@ -32,13 +33,18 @@ export default async function InternshipsPage() {
             : "No listings cached yet — refresh them in Settings"
         }
         action={
-          <Link href="/settings" className="text-sm text-accent hover:underline">
-            Filters & refresh →
+          // Every other page's action slot holds a button; this was a bare link.
+          <Link
+            href="/settings"
+            className="inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface-2"
+          >
+            <SlidersHorizontal size={14} aria-hidden />
+            Filters &amp; refresh
           </Link>
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <StatGrid>
         <StatTile label="Total applications" value={apps.length} />
         <StatTile label="In play" value={active.length} />
         <StatTile
@@ -47,7 +53,7 @@ export default async function InternshipsPage() {
           tone="ok"
         />
         <StatTile label="Matching pool" value={picks.matchPool} hint="unseen postings that fit your filters" />
-      </div>
+      </StatGrid>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">
         <Card
@@ -60,7 +66,9 @@ export default async function InternshipsPage() {
           <Card title="Funnel">
             <AppFunnel data={funnelData(apps)} compact />
           </Card>
-          <Card title="Activity">
+          {/* Deliberately applications-only. Retitled because an identically
+              styled card on the dashboard counts assignments too. */}
+          <Card title="Application activity">
             <ActivityHeatmap counts={activityCounts([], apps)} compact />
           </Card>
         </div>

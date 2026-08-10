@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useChartTheme } from "@/lib/chartTheme";
+import { tooltipStyle, useChartTheme } from "@/lib/chartTheme";
 import { EmptyState } from "@/components/ui";
 
 export default function ClassCompletion({
@@ -29,16 +29,11 @@ export default function ClassCompletion({
         />
         <Tooltip
           cursor={{ fill: t.grid, opacity: 0.4 }}
-          contentStyle={{
-            background: t.tooltipBg,
-            border: `1px solid ${t.tooltipBorder}`,
-            borderRadius: 8,
-            color: t.text,
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle(t)}
         />
         <Bar dataKey="done" name="Done" stackId="a" fill={t.series[4]} radius={[0, 0, 0, 0]} />
-        <Bar dataKey="pending" name="Pending" stackId="a" fill={t.grid} radius={[0, 4, 4, 0]} />
+        {/* t.muted, not t.grid — sharing the gridline color made this bar vanish. */}
+        <Bar dataKey="pending" name="Pending" stackId="a" fill={t.muted} radius={[0, 4, 4, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

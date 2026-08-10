@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
-/** Stable series palette, colorblind-safe ordering, one variant per theme. */
+/** Stable series palette, colorblind-safe ordering, one variant per theme.
+ *  [0] is the accent so accent-tinted charts (the heatmap) track the brand. */
 export const SERIES = {
-  light: ["#4f46e5", "#0891b2", "#d97706", "#db2777", "#059669", "#7c3aed", "#dc2626", "#0284c7"],
-  dark: ["#818cf8", "#22d3ee", "#fbbf24", "#f472b6", "#34d399", "#a78bfa", "#f87171", "#38bdf8"],
+  light: ["#3b6ea8", "#0f7a8a", "#b4700f", "#a8467a", "#157f5a", "#6b5bb5", "#c0392b", "#2b7fb8"],
+  dark: ["#6a9fd8", "#56c2c8", "#e0b25c", "#d98cb0", "#6ec9a0", "#a99cea", "#e88b7d", "#7cc0ea"],
 };
 
 export interface ChartTheme {
@@ -13,41 +14,54 @@ export interface ChartTheme {
   series: string[];
   grid: string;
   axis: string;
+  /** For low-emphasis data (e.g. "pending"). Distinct from `grid` on purpose —
+   *  sharing that color made pending bars invisible against the gridlines. */
+  muted: string;
   tooltipBg: string;
   tooltipBorder: string;
   text: string;
 }
 
+const LIGHT: ChartTheme = {
+  dark: false,
+  series: SERIES.light,
+  grid: "#eae7e1",
+  axis: "#8b857a",
+  muted: "#d6d1c8",
+  tooltipBg: "#ffffff",
+  tooltipBorder: "#e5e1da",
+  text: "#23211d",
+};
+
+const DARK: ChartTheme = {
+  dark: true,
+  series: SERIES.dark,
+  grid: "#3d3d39",
+  axis: "#948f85",
+  muted: "#55554e",
+  tooltipBg: "#30302e",
+  tooltipBorder: "#45453f",
+  text: "#ecebe8",
+};
+
 function compute(): ChartTheme {
+  if (typeof document === "undefined") return LIGHT;
+  const attr = document.documentElement.dataset.theme;
   const dark =
-    typeof document !== "undefined" &&
-    (document.documentElement.dataset.theme === "dark" ||
-      (!document.documentElement.dataset.theme &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches));
-  return {
-    dark,
-    series: dark ? SERIES.dark : SERIES.light,
-    grid: dark ? "#1e293b" : "#e2e8f0",
-    axis: dark ? "#64748b" : "#94a3b8",
-    tooltipBg: dark ? "#0f172a" : "#ffffff",
-    tooltipBorder: dark ? "#1e293b" : "#e2e8f0",
-    text: dark ? "#e2e8f0" : "#0f172a",
-  };
+    attr === "dark" ||
+    (!attr && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  return dark ? DARK : LIGHT;
 }
+
+// The server renders light; syncing in a layout effect repaints before the
+// browser paints, so charts no longer flash light on a dark-mode reload.
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /** Re-renders charts when the theme flips, so nothing washes out on dark surfaces. */
 export function useChartTheme(): ChartTheme {
-  const [theme, setTheme] = useState<ChartTheme>(() => ({
-    dark: false,
-    series: SERIES.light,
-    grid: "#e2e8f0",
-    axis: "#94a3b8",
-    tooltipBg: "#ffffff",
-    tooltipBorder: "#e2e8f0",
-    text: "#0f172a",
-  }));
+  const [theme, setTheme] = useState<ChartTheme>(LIGHT);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const update = () => setTheme(compute());
     update();
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -61,6 +75,17 @@ export function useChartTheme(): ChartTheme {
   }, []);
 
   return theme;
+}
+
+/** Shared Recharts <Tooltip contentStyle> — was duplicated in every chart. */
+export function tooltipStyle(t: ChartTheme): React.CSSProperties {
+  return {
+    background: t.tooltipBg,
+    border: `1px solid ${t.tooltipBorder}`,
+    borderRadius: 10,
+    color: t.text,
+    fontSize: 12,
+  };
 }
 
 /** Deterministic color for a class id so a class keeps its color everywhere. */

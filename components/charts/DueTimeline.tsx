@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { colorFor, useChartTheme } from "@/lib/chartTheme";
+import { colorFor, tooltipStyle, useChartTheme } from "@/lib/chartTheme";
 import { EmptyState } from "@/components/ui";
 import type { TimelinePoint } from "@/lib/derive";
 
@@ -39,13 +39,7 @@ export default function DueTimeline({
         />
         <Tooltip
           cursor={{ fill: t.grid, opacity: 0.4 }}
-          contentStyle={{
-            background: t.tooltipBg,
-            border: `1px solid ${t.tooltipBorder}`,
-            borderRadius: 8,
-            color: t.text,
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle(t)}
         />
         {classes.map((c) => (
           <Bar

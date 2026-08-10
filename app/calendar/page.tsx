@@ -37,31 +37,57 @@ export default async function CalendarPage() {
         subtitle={now.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
       />
 
-      <Card bodyClass="p-3">
-        <div className="grid grid-cols-7 gap-px">
+      <Card
+        bodyClass="p-3"
+        action={
+          // Was a loose paragraph below the card; a swatch legend says it in less space.
+          <div className="flex items-center gap-3 text-xs text-faint">
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              Assignments
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-warn" />
+              Applications
+            </span>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-7 gap-1">
           {WEEKDAYS.map((d) => (
-            <div key={d} className="px-2 py-1 text-center text-xs font-medium text-faint">
+            <div key={d} className="px-2 pb-1 text-center text-xs font-medium text-faint">
               {d}
             </div>
           ))}
           {cells.map((key, i) => {
-            if (!key) return <div key={`pad-${i}`} className="min-h-24" />;
+            // Transparent border, not no border — otherwise lead-week cells are
+            // 2px shorter than real ones and the grid edge reads as broken.
+            if (!key)
+              return <div key={`pad-${i}`} className="min-h-26 border border-transparent" />;
             const due = assignments.filter((a) => a.dueDate === key);
             const deadlines = apps.filter((a) => a.deadline === key);
             return (
               <div
                 key={key}
-                className={`min-h-24 rounded-md border p-1.5 ${
-                  key === today ? "border-accent bg-accent-soft" : "border-border"
+                className={`min-h-26 rounded-[var(--radius-sm)] border p-1.5 transition-colors ${
+                  key === today
+                    ? "border-accent bg-accent-soft"
+                    : "border-border hover:bg-surface-2"
                 }`}
               >
-                <p className="mb-1 text-xs tabular-nums text-faint">{Number(key.slice(-2))}</p>
+                <p
+                  className={`tabular mb-1 text-xs ${
+                    key === today ? "font-semibold text-accent" : "text-faint"
+                  }`}
+                >
+                  {Number(key.slice(-2))}
+                </p>
                 <div className="space-y-1">
                   {due.map((a) => (
                     <p
                       key={a.id}
                       title={a.title}
-                      className={`truncate rounded px-1 py-0.5 text-[10px] ${
+                      className={`truncate rounded px-1.5 py-0.5 text-xs ${
                         a.status === "done"
                           ? "bg-surface-2 text-faint line-through"
                           : "bg-accent-soft text-accent"
@@ -74,7 +100,7 @@ export default async function CalendarPage() {
                     <p
                       key={a.id}
                       title={`${a.role} — ${a.company}`}
-                      className="truncate rounded bg-warn/10 px-1 py-0.5 text-[10px] text-warn"
+                      className="truncate rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn"
                     >
                       {a.company}
                     </p>
@@ -85,10 +111,6 @@ export default async function CalendarPage() {
           })}
         </div>
       </Card>
-
-      <p className="mt-3 text-xs text-faint">
-        Assignment due dates in the accent color, application deadlines in amber.
-      </p>
     </>
   );
 }

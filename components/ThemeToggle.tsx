@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { motion } from "motion/react";
 
 type Theme = "system" | "light" | "dark";
-const OPTIONS: { value: Theme; label: string }[] = [
-  { value: "light", label: "☀" },
-  { value: "dark", label: "☾" },
-  { value: "system", label: "◐" },
+const OPTIONS: { value: Theme; label: string; Icon: typeof Sun }[] = [
+  { value: "light", label: "Light", Icon: Sun },
+  { value: "dark", label: "Dark", Icon: Moon },
+  { value: "system", label: "System", Icon: Monitor },
 ];
 
 export function applyTheme(theme: Theme) {
@@ -29,18 +31,26 @@ export default function ThemeToggle() {
   }
 
   return (
-    <div className="flex gap-1 rounded-lg border border-border p-1">
+    <div className="flex gap-1 rounded-[var(--radius-sm)] border border-border p-1">
       {OPTIONS.map((o) => (
         <button
           key={o.value}
           onClick={() => pick(o.value)}
-          aria-label={`${o.value} theme`}
+          title={`${o.label} theme`}
+          aria-label={`${o.label} theme`}
           aria-pressed={theme === o.value}
-          className={`flex-1 rounded-md py-1 text-sm transition-colors ${
-            theme === o.value ? "bg-accent-soft text-accent" : "text-faint hover:text-text"
+          className={`relative flex flex-1 items-center justify-center rounded-md py-1.5 transition-colors ${
+            theme === o.value ? "text-accent" : "text-faint hover:text-text"
           }`}
         >
-          {o.label}
+          {theme === o.value && (
+            <motion.span
+              layoutId="theme-pill"
+              className="absolute inset-0 rounded-md bg-accent-soft"
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            />
+          )}
+          <o.Icon size={14} strokeWidth={2} className="relative" aria-hidden />
         </button>
       ))}
     </div>

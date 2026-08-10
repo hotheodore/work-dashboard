@@ -23,7 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="min-w-0 flex-1 px-5 py-6 lg:px-8">{children}</main>
+          <main className="min-w-0 flex-1 px-5 py-6 lg:px-8">
+            {/* Capped so grids stay dense on wide monitors instead of stretching. */}
+            <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+          </main>
         </div>
       </body>
     </html>

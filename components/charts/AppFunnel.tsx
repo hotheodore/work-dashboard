@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useChartTheme } from "@/lib/chartTheme";
+import { tooltipStyle, useChartTheme } from "@/lib/chartTheme";
 import { EmptyState } from "@/components/ui";
 
 export default function AppFunnel({
@@ -29,13 +29,7 @@ export default function AppFunnel({
         />
         <Tooltip
           cursor={{ fill: t.grid, opacity: 0.4 }}
-          contentStyle={{
-            background: t.tooltipBg,
-            border: `1px solid ${t.tooltipBorder}`,
-            borderRadius: 8,
-            color: t.text,
-            fontSize: 12,
-          }}
+          contentStyle={tooltipStyle(t)}
         />
         <Bar dataKey="count" radius={[0, 4, 4, 0]}>
           {data.map((d, i) => (

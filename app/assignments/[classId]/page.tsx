@@ -1,13 +1,12 @@
 import { notFound } from "next/navigation";
 import PageHeader from "@/components/PageHeader";
-import { Card, StatTile } from "@/components/ui";
+import { Card, StatGrid, StatTile } from "@/components/ui";
 import { AddAssignmentButton, DeleteClassButton } from "@/components/assignments/AssignmentForms";
 import AssignmentTable from "@/components/assignments/AssignmentTable";
 import SyllabusPaste from "@/components/assignments/SyllabusPaste";
 import DueTimeline from "@/components/charts/DueTimeline";
-import ClassCompletion from "@/components/charts/ClassCompletion";
 import { getAssignments, getClasses } from "@/lib/store";
-import { completionData, timelineData } from "@/lib/derive";
+import { timelineData } from "@/lib/derive";
 import { classGrade } from "@/lib/grades";
 
 // reads data/*.json at request time — never prerender
@@ -35,9 +34,17 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Assignments" value={mine.length} hint={`${mine.filter((a) => a.status === "done").length} done`} />
-        <StatTile label="Completion" value={`${Math.round(g.completion)}%`} />
+      <StatGrid>
+        <StatTile
+          label="Assignments"
+          value={mine.length}
+          hint={`${mine.filter((a) => a.status === "done").length} done`}
+        />
+        <StatTile
+          label="Completion"
+          value={`${Math.round(g.completion)}%`}
+          hint={`${mine.filter((a) => a.status !== "done").length} still open`}
+        />
         <StatTile
           label="Current grade"
           value={g.current === null ? "—" : `${g.current.toFixed(1)}%`}
@@ -46,20 +53,15 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
         <StatTile
           label="Projected final"
           value={g.projected === null ? "—" : `${g.projected.toFixed(1)}%`}
-          hint={
-            g.totalWeight < 95
-              ? `only ${g.totalWeight}% of the course weight entered`
-              : "assumes remaining work scores at current average"
-          }
+          hint={g.totalWeight < 95 ? `${g.totalWeight}% of weight entered` : "at current average"}
         />
-      </div>
+      </StatGrid>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      {/* "Done vs pending" used to sit here: a 280px chart drawing one bar, saying
+          the same thing as the Completion tile above. */}
+      <div className="mt-6">
         <Card title="Next 14 days">
           <DueTimeline data={timelineData(mine, [klass])} classes={[klass]} />
-        </Card>
-        <Card title="Done vs pending">
-          <ClassCompletion data={completionData(mine, [klass])} />
         </Card>
       </div>
 

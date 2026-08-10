@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
-import { Card, EmptyState, StatTile } from "@/components/ui";
+import { Card, EmptyState, StatGrid } from "@/components/ui";
 import { AddAssignmentButton, AddClassButton } from "@/components/assignments/AssignmentForms";
 import AssignmentTable from "@/components/assignments/AssignmentTable";
 import DueTimeline from "@/components/charts/DueTimeline";
@@ -40,7 +40,7 @@ export default async function AssignmentsPage() {
         />
       ) : (
         <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatGrid>
             {classes.map((c) => {
               const mine = assignments.filter((a) => a.classId === c.id);
               const g = classGrade(mine);
@@ -48,24 +48,31 @@ export default async function AssignmentsPage() {
                 .filter((a) => a.status !== "done")
                 .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
               return (
-                <Link key={c.id} href={`/assignments/${c.id}`} className="block">
-                  <div className="card h-full p-5 transition-colors hover:border-accent">
-                    <p className="text-xs font-medium uppercase tracking-wider text-faint">
+                <Link key={c.id} href={`/assignments/${c.id}`} className="block h-full">
+                  <div className="card card-interactive flex h-full flex-col p-5 hover:border-accent">
+                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-faint">
                       {c.code || c.term || "Class"}
                     </p>
-                    <p className="mt-1 text-base font-semibold">{c.name}</p>
-                    <p className="mt-3 text-sm text-muted">
+                    <p className="mt-1.5 text-base font-semibold">{c.name}</p>
+                    {/* Progress bar reads faster than the percentage alone. */}
+                    <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
+                      <div
+                        className="h-full rounded-full bg-accent transition-[width] duration-500"
+                        style={{ width: `${Math.round(g.completion)}%` }}
+                      />
+                    </div>
+                    <p className="tabular mt-2 text-sm text-muted">
                       {Math.round(g.completion)}% complete
                       {g.current !== null && ` · ${g.current.toFixed(1)}% grade`}
                     </p>
-                    <p className="mt-1 text-xs text-faint">
+                    <p className="mt-auto pt-2 text-xs text-faint">
                       {next ? `Next: ${next.title} (${next.dueDate})` : "Nothing due"}
                     </p>
                   </div>
                 </Link>
               );
             })}
-          </div>
+          </StatGrid>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <Card title="Next 14 days">

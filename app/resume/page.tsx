@@ -1,5 +1,5 @@
 import PageHeader from "@/components/PageHeader";
-import { Card, EmptyState } from "@/components/ui";
+import { Badge, EmptyState } from "@/components/ui";
 import ResumeEditor from "@/components/resume/ResumeEditor";
 import { getResume, listTailored } from "@/lib/store";
 
@@ -12,39 +12,30 @@ export default async function ResumePage() {
 
   return (
     <>
+      {/* The tailored-docs card was a read-only list of file paths with no actions.
+          The count is the only part worth surfacing, so it lives in the header. */}
       <PageHeader
         title="Resume"
-        subtitle="Source of truth for tailoring. Every generated bullet traces back to something here."
+        subtitle="Source of truth for tailoring."
+        action={
+          tailored.length ? (
+            <Badge tone="accent">
+              {tailored.length} tailored {tailored.length === 1 ? "document" : "documents"}
+            </Badge>
+          ) : undefined
+        }
       />
 
       {empty && (
         <div className="mb-6">
           <EmptyState
             title="Resume is empty"
-            hint='Seed it from your PDF: npm run seed:resume -- "C:/Users/theod/Documents/Resume - Theodore Ho FINAL.pdf" — or just fill it in below.'
+            hint="Fill it in below, or seed it from a PDF with: npm run seed:resume -- <path-to-pdf>"
           />
         </div>
       )}
 
       <ResumeEditor initial={resume} />
-
-      <div className="mt-6">
-        <Card title={`Tailored documents (${tailored.length})`}>
-          {!tailored.length ? (
-            <p className="text-sm text-muted">
-              Tailor an application from the Internships pipeline and it shows up here.
-            </p>
-          ) : (
-            <ul className="space-y-1 text-sm">
-              {tailored.map((f) => (
-                <li key={f} className="font-mono text-xs text-muted">
-                  data/tailored/{f}
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      </div>
     </>
   );
 }
