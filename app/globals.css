@@ -25,13 +25,13 @@
    explicit dark toggle. Both selectors share one block so they cannot drift. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #262624;
-    --surface: #30302e;
-    --surface-2: #3a3a37;
-    --border: #45453f;
+    --bg: #1c1d20;
+    --surface: #252629;
+    --surface-2: #2f3034;
+    --border: #3a3b40;
     --text: #ecebe8;
-    --text-muted: #a8a49c;
-    --text-faint: #9d988e;
+    --text-muted: #a2a4a8;
+    --text-faint: #8f9297;
     --accent: #6a9fd8;
     --accent-text: #16273d;
     --ok: #6ec9a0;
