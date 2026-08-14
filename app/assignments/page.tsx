@@ -89,7 +89,7 @@ export default async function AssignmentsPage() {
           <Card title="Upcoming across all classes" bodyClass="px-2 pb-2">
             <AssignmentTable
               assignments={upcoming}
-              classLabel={Object.fromEntries(classes.map((c) => [c.id, c.code]))}
+              classLabel={Object.fromEntries(classes.map((c) => [c.id, c.name]))}
             />
           </Card>
         </div>

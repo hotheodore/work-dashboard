@@ -10,7 +10,7 @@
   --text-muted: #6b665e;
   /* Used for the uppercase eyebrow labels, so it has to clear AA — not just decoration. */
   --text-faint: #757064;
-  --accent: #5b52e0;
+  --accent: #3f6690;
   --accent-text: #ffffff;
   --ok: #157f5a;
   --warn: #b4700f;
@@ -50,8 +50,8 @@
   --d-text: #ecebe8;
   --d-text-muted: #a5a29b;
   --d-text-faint: #97948c;
-  --d-accent: #a5a0ff;
-  --d-accent-text: #1c1a3d;
+  --d-accent: #8fb4d9;
+  --d-accent-text: #122230;
   --d-ok: #6ec9a0;
   --d-warn: #e0b25c;
   --d-danger: #e88b7d;

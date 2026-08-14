@@ -154,7 +154,7 @@ export default function QuickAdd({ classes }: { classes: Klass[] }) {
                 <span style={classVar(klass.id)} className="shrink-0">
                   <Chip tone="class">
                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />
-                    {klass.code || klass.name}
+                    {klass.name || klass.code}
                   </Chip>
                 </span>
               ) : (

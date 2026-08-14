@@ -4,7 +4,7 @@ export default function ProgressRing({
   value,
   label,
   hint,
-  size = 84,
+  size = 110,
   tone = "accent",
 }: {
   /** 0–100. Clamped. */
@@ -15,7 +15,7 @@ export default function ProgressRing({
   tone?: "accent" | "ok" | "warn";
 }) {
   const pct = Math.max(0, Math.min(100, Math.round(value)));
-  const stroke = 8;
+  const stroke = 10;
   const r = (size - stroke) / 2;
   const circumference = 2 * Math.PI * r;
   const color = tone === "ok" ? "var(--ok)" : tone === "warn" ? "var(--warn)" : "var(--accent)";
@@ -49,11 +49,10 @@ export default function ProgressRing({
           </g>
         </svg>
         <span
-          className="tabular absolute inset-0 grid place-items-center font-mono text-lg font-semibold"
+          className="tabular absolute inset-0 grid place-items-center font-mono text-xl font-semibold"
           style={{ color }}
         >
-          {pct}
-          <span className="sr-only"> percent</span>
+          {pct}%
         </span>
       </div>
       <div className="text-center">

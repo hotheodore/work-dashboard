@@ -11,6 +11,10 @@ export { SERIES, colorFor, classHue, classVar } from "./classColors";
 export interface ChartTheme {
   dark: boolean;
   series: string[];
+  /** The live site accent (steely blue), read from --accent — not series[0],
+   *  which is a class color and stays independent of the brand color. Used
+   *  for accent-tinted surfaces like the activity heatmap. */
+  accent: string;
   grid: string;
   axis: string;
   /** For low-emphasis data (e.g. "pending"). Distinct from `grid` on purpose —
@@ -24,6 +28,7 @@ export interface ChartTheme {
 const LIGHT: ChartTheme = {
   dark: false,
   series: SERIES.light,
+  accent: "#3f6690",
   grid: "#eae7e1",
   axis: "#8b857a",
   muted: "#d6d1c8",
@@ -35,6 +40,7 @@ const LIGHT: ChartTheme = {
 const DARK: ChartTheme = {
   dark: true,
   series: SERIES.dark,
+  accent: "#8fb4d9",
   grid: "#333331",
   axis: "#97948c",
   muted: "#4a4a46",
@@ -49,7 +55,12 @@ function compute(): ChartTheme {
   const dark =
     attr === "dark" ||
     (!attr && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  return dark ? DARK : LIGHT;
+  const base = dark ? DARK : LIGHT;
+  // Read the live CSS custom property rather than trust the hardcoded
+  // fallback above, so a future --accent edit in globals.css needs no
+  // matching edit here.
+  const live = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+  return live ? { ...base, accent: live } : base;
 }
 
 // The server renders light; syncing in a layout effect repaints before the

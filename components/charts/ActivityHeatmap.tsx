@@ -68,7 +68,7 @@ export default function ActivityHeatmap({
 
   const max = Math.max(1, ...days.map((d) => d.count));
   const shade = (n: number) =>
-    n === 0 ? t.grid : t.series[0] + LEVELS[Math.ceil((n / max) * 4) - 1];
+    n === 0 ? t.grid : t.accent + LEVELS[Math.ceil((n / max) * 4) - 1];
 
   const cell = compact ? "minmax(9px, 12px)" : "minmax(12px, 20px)";
 
@@ -168,7 +168,7 @@ export default function ActivityHeatmap({
               width: 9,
               height: 9,
               borderRadius: 2,
-              background: l === 0 ? t.grid : t.series[0] + LEVELS[l - 1],
+              background: l === 0 ? t.grid : t.accent + LEVELS[l - 1],
             }}
           />
         ))}
@@ -198,9 +198,9 @@ export default function ActivityHeatmap({
   // whether the stats fit beside the grid.
   return (
     <div className="@container min-w-0">
-      <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-8">
+      <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-6">
         {grid}
-        <div className="flex items-center gap-5 @[30rem]:ml-auto @[30rem]:shrink-0">
+        <div className="flex items-center gap-6 @[30rem]:ml-auto @[30rem]:shrink-0">
           {aside}
           <dl className="grid flex-1 grid-cols-3 gap-6 border-border @[30rem]:grid-cols-1 @[30rem]:gap-4 @[30rem]:border-l @[30rem]:pl-6">
             {[
@@ -209,10 +209,10 @@ export default function ActivityHeatmap({
               { label: "Weekly average", value: perWeek.toFixed(1) },
             ].map((s) => (
               <div key={s.label}>
-                <dt className="text-xs font-medium uppercase tracking-[0.08em] text-faint">
+                <dt className="text-[0.525rem] font-medium uppercase tracking-[0.08em] text-faint">
                   {s.label}
                 </dt>
-                <dd className="tabular mt-1 font-mono text-2xl leading-none font-semibold">
+                <dd className="tabular mt-1 font-mono text-[1.05rem] leading-none font-semibold">
                   {s.value}
                 </dd>
               </div>

@@ -103,7 +103,7 @@ export function deadlines(
       .map((a) => ({
         id: a.id,
         label: a.title,
-        sub: classes.find((c) => c.id === a.classId)?.code ?? "Class",
+        sub: classes.find((c) => c.id === a.classId)?.name ?? "Class",
         date: a.dueDate,
         daysOut: daysOut(a.dueDate),
         kind: "assignment" as const,
