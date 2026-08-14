@@ -1,74 +1,98 @@
 @import "tailwindcss";
 
-/* ---- design tokens: light (warm off-white) ---- */
+/* ---- design tokens: light (warm paper, navy ink) ----
+   Warm neutral canvas, blue accents. The surfaces themselves are the white in
+   "white, navy, light blue" — they sit on a warm off-white ground, which is
+   what keeps the blues from reading as a system dialog.
+   The accents are one navy->blue ramp:
+     --accent-3  the darkest blue in the set (#071A33) — near-black, but still
+                 reads blue against the warm ground
+     --accent    navy (#14427E), the lead
+     --accent-2  the light-blue end (#1D6699) — darkened from a true sky blue,
+                 which cannot clear AA as text on white at any usable chroma.
+                 Actual light blue shows up as the -soft tints derived below.
+   --ok / --warn / --danger stay green/amber/red: meaning does not follow the
+   brand color. Every value here was checked at >=4.5:1 against --bg. */
 :root {
-  --bg: #faf9f7;
+  --bg: #faf9f5;
   --surface: #ffffff;
-  --surface-2: #f2f0ec;
-  --border: #e5e1da;
-  --text: #23211d;
-  --text-muted: #6b665e;
+  --surface-2: #f0eee7;
+  --border: #e3e0d8;
+  --text: #1f1e1c;
+  --text-muted: #6b675e;
   /* Used for the uppercase eyebrow labels, so it has to clear AA — not just decoration. */
-  --text-faint: #757064;
-  --accent: #3f6690;
+  --text-faint: #726d63;
+  --accent: #14427e;
   --accent-text: #ffffff;
-  --ok: #157f5a;
-  --warn: #b4700f;
-  --danger: #c0392b;
+  --accent-2: #1d6699;
+  --accent-3: #071a33;
+  --ok: #1e7a34;
+  --warn: #8a6300;
+  --danger: #c0182b;
 
   /* Class identity palette — mirrors SERIES.light in lib/classColors.ts.
      classHue(id) picks the index; the var resolves per theme, which is how a
-     server component colors a class without knowing the active theme. */
-  --class-0: #5b52e0;
-  --class-1: #0f7a8a;
-  /* Not amber: --warn owns amber, and application deadlines render in it
-     right beside class swatches in the calendar legend. */
-  --class-2: #7b3fd4;
-  --class-3: #a8467a;
-  --class-4: #157f5a;
-  --class-5: #c0392b;
-  --class-6: #2b7fb8;
-  --class-7: #8a6a3d;
+     server component colors a class without knowing the active theme.
+     Deliberately multi-hue and independent of the blue brand: eight steps of
+     one blue would be a legend nobody can read. */
+  --class-0: #9c4526;
+  --class-1: #17655a;
+  --class-2: #853d5e;
+  --class-3: #8e5214;
+  --class-4: #426627;
+  --class-5: #5a4285;
+  --class-6: #3d598e;
+  --class-7: #664a33;
 
-  --shadow-sm: 0 1px 2px rgb(35 33 29 / 0.05);
-  --shadow-md: 0 1px 2px rgb(35 33 29 / 0.04), 0 4px 10px -4px rgb(35 33 29 / 0.08),
-    0 16px 32px -20px rgb(35 33 29 / 0.16);
-  --shadow-lg: 0 1px 2px rgb(35 33 29 / 0.05), 0 8px 18px -6px rgb(35 33 29 / 0.12),
-    0 28px 48px -24px rgb(35 33 29 / 0.26);
+  --shadow-sm: 0 1px 2px rgb(31 30 28 / 0.06);
+  --shadow-md: 0 1px 2px rgb(31 30 28 / 0.05), 0 4px 10px -4px rgb(31 30 28 / 0.09),
+    0 16px 32px -20px rgb(31 30 28 / 0.18);
+  --shadow-lg: 0 1px 2px rgb(31 30 28 / 0.06), 0 8px 18px -6px rgb(31 30 28 / 0.14),
+    0 28px 48px -24px rgb(31 30 28 / 0.28);
   --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
+  /* How much accent goes into the -soft chip backgrounds. Lower in dark mode:
+     the same 14% against a dark surface leaves the label short of AA. */
+  --soft-mix: 14%;
 }
 
 /* ---- design tokens: dark (warm gray) ----
-   Values live here once. The two selectors below only *map* them, so the
-   system-preference theme and the explicit toggle cannot drift apart — which
-   is exactly what happened when each block carried its own hexes. */
+   The ramp inverts: the lead accent becomes the lighter blue, because a navy
+   lead disappears at this brightness. Held to roughly 5-7:1 on --surface, not
+   the 8-11:1 it started at — brighter than that and the accents glowed. Values live here once — the two
+   selectors below only *map* them, so the system-preference theme and the
+   explicit toggle cannot drift apart. */
 :root {
-  --d-bg: #1e1e1c;
-  --d-surface: #292927;
-  --d-surface-2: #333331;
-  --d-border: #403f3b;
-  --d-text: #ecebe8;
-  --d-text-muted: #a5a29b;
-  --d-text-faint: #97948c;
-  --d-accent: #8fb4d9;
-  --d-accent-text: #122230;
-  --d-ok: #6ec9a0;
-  --d-warn: #e0b25c;
-  --d-danger: #e88b7d;
-  --d-class-0: #a5a0ff;
-  --d-class-1: #56c2c8;
-  --d-class-2: #c98bff;
-  --d-class-3: #d98cb0;
-  --d-class-4: #6ec9a0;
-  --d-class-5: #e88b7d;
-  --d-class-6: #7cc0ea;
-  --d-class-7: #cbab7a;
-  --d-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-  --d-shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 10px -4px rgb(0 0 0 / 0.4),
-    0 16px 32px -20px rgb(0 0 0 / 0.6);
-  --d-shadow-lg: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 18px -6px rgb(0 0 0 / 0.45),
-    0 28px 48px -24px rgb(0 0 0 / 0.7);
+  --d-bg: #1f1e1d;
+  --d-surface: #262625;
+  --d-surface-2: #30302e;
+  --d-border: #3d3c39;
+  --d-text: #f0eee7;
+  --d-text-muted: #a9a49a;
+  --d-text-faint: #9b968c;
+  --d-accent: #5ea3d4;
+  --d-accent-text: #0a1a2b;
+  --d-accent-2: #7fbde4;
+  /* The dark end of the ramp cannot follow the light one down: any darker than
+     this and the chip label it carries drops under AA on --surface. */
+  --d-accent-3: #5c98d6;
+  --d-ok: #30d158;
+  --d-warn: #e8b13d;
+  --d-danger: #ff6961;
+  --d-class-0: #d9805c;
+  --d-class-1: #4bb09c;
+  --d-class-2: #d07f9c;
+  --d-class-3: #d19a4d;
+  --d-class-4: #86b85c;
+  --d-class-5: #a189d6;
+  --d-class-6: #7c9bcc;
+  --d-class-7: #b28e70;
+  --d-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --d-shadow-md: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 10px -4px rgb(0 0 0 / 0.5),
+    0 16px 32px -20px rgb(0 0 0 / 0.7);
+  --d-shadow-lg: 0 1px 2px rgb(0 0 0 / 0.45), 0 8px 18px -6px rgb(0 0 0 / 0.55),
+    0 28px 48px -24px rgb(0 0 0 / 0.8);
   --d-card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --d-soft-mix: 8%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -82,6 +106,8 @@
     --text-faint: var(--d-text-faint);
     --accent: var(--d-accent);
     --accent-text: var(--d-accent-text);
+    --accent-2: var(--d-accent-2);
+    --accent-3: var(--d-accent-3);
     --ok: var(--d-ok);
     --warn: var(--d-warn);
     --danger: var(--d-danger);
@@ -97,6 +123,7 @@
     --shadow-md: var(--d-shadow-md);
     --shadow-lg: var(--d-shadow-lg);
     --card-highlight: var(--d-card-highlight);
+    --soft-mix: var(--d-soft-mix);
   }
 }
 
@@ -110,6 +137,8 @@
   --text-faint: var(--d-text-faint);
   --accent: var(--d-accent);
   --accent-text: var(--d-accent-text);
+  --accent-2: var(--d-accent-2);
+  --accent-3: var(--d-accent-3);
   --ok: var(--d-ok);
   --warn: var(--d-warn);
   --danger: var(--d-danger);
@@ -125,12 +154,15 @@
   --shadow-md: var(--d-shadow-md);
   --shadow-lg: var(--d-shadow-lg);
   --card-highlight: var(--d-card-highlight);
+  --soft-mix: var(--d-soft-mix);
 }
 
 /* Derived from --accent so the tint always carries the surface temperature.
    Declared once, outside the theme blocks — the mix re-resolves per theme. */
 :root {
-  --accent-soft: color-mix(in oklab, var(--accent) 14%, var(--surface));
+  --accent-soft: color-mix(in oklab, var(--accent) var(--soft-mix), var(--surface));
+  --accent-2-soft: color-mix(in oklab, var(--accent-2) var(--soft-mix), var(--surface));
+  --accent-3-soft: color-mix(in oklab, var(--accent-3) var(--soft-mix), var(--surface));
   --accent-ring: color-mix(in oklab, var(--accent) 35%, transparent);
   /* The depth cue: cards sit a hair darker at the bottom than at the top. */
   --surface-gradient: linear-gradient(
@@ -138,7 +170,9 @@
     var(--surface),
     color-mix(in oklab, var(--surface-2) 40%, var(--surface))
   );
-  --glow: radial-gradient(60% 130% at 15% 0%, var(--accent-soft), transparent 70%);
+  /* One wash, top-left. A second one on the right made every page read as
+     tinted rather than as paper; the color belongs on the cards and rules. */
+  --glow: radial-gradient(50% 110% at 8% 0%, var(--accent-soft), transparent 66%);
   --radius: 0.875rem;
   --radius-sm: 0.5rem;
   --radius-lg: 1.25rem;
@@ -159,6 +193,10 @@
   --color-faint: var(--text-faint);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-2: var(--accent-2);
+  --color-accent-2-soft: var(--accent-2-soft);
+  --color-accent-3: var(--accent-3);
+  --color-accent-3-soft: var(--accent-3-soft);
   --color-accent-text: var(--accent-text);
   --color-accent-ring: var(--accent-ring);
   --color-ok: var(--ok);
@@ -226,7 +264,20 @@ h1, h2, h3 { letter-spacing: -0.02em; }
   inset: 0 0 auto 0;
   height: 2px;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: linear-gradient(90deg, var(--accent), transparent 70%);
+  background: linear-gradient(90deg, var(--accent), var(--accent-2) 50%, var(--accent-3) 92%);
+}
+
+/* Per-card hue. `tint` on <Card> sets --tint; the card then gets a top rule in
+   that color — no corner wash: three tinted cards each with their own radial
+   turned the grid into a color field. Unlike .card-accented it is not limited
+   to one per screen — it is identity, not emphasis. */
+.card-tinted::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, var(--tint), transparent 78%);
 }
 
 /* Ambient wash behind a page header. Sits under content and never takes clicks. */

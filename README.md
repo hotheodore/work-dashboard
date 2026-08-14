@@ -1,4 +1,4 @@
-# Work Dashboard
+# Workbench
 
 A dashboard for tracking coursework and internship applications, built with Next.js 16, React 19, and Tailwind CSS 4. State is JSON — on local disk during development, in Vercel Blob when deployed. No database, no accounts.
 

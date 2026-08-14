@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import "./globals.css";
@@ -9,8 +9,18 @@ const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Work Dashboard",
+  title: "Workbench",
   description: "Coursework and internship command center",
+  // Drives the iOS status-bar treatment when launched from the home screen.
+  appleWebApp: { capable: true, title: "Workbench", statusBarStyle: "default" },
+};
+
+// Tints the browser chrome on mobile; matches --bg per theme.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf9f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#1f1e1d" },
+  ],
 };
 
 // Applied before paint so an explicit light/dark choice never flashes the wrong theme.

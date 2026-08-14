@@ -12,17 +12,11 @@ import { getApplications, getAssignments, getClasses } from "@/lib/store";
 import { getDailyPicks } from "@/lib/jobs";
 import { connection, fetchTodayEvents } from "@/lib/google";
 import { activityCounts, dayKey, deadlines } from "@/lib/derive";
+import { greeting } from "@/lib/greeting";
 import type { CalendarEvent } from "@/lib/types";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
-
-function greeting(h: number) {
-  if (h < 5) return "Still up";
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
 
 /** Google being down or unlinked must not take the whole dashboard with it. */
 async function todayEvents(): Promise<{ events: CalendarEvent[]; error?: string }> {
@@ -75,21 +69,21 @@ export default async function DashboardPage() {
           month: "long",
           day: "numeric",
         })}
-        title={greeting(now.getHours())}
+        title={greeting(now)}
         stats={
           <>
-            <StatChip label="Applied this week" value={appsThisWeek} icon={<Send />} />
+            <StatChip label="Applied this week" value={appsThisWeek} icon={<Send />} tone="navy" />
             <StatChip
               label="Active interviews"
               value={interviews}
               icon={<MessagesSquare />}
-              tone={interviews ? "ok" : "default"}
+              tone={interviews ? "ok" : "blue"}
             />
             <StatChip
               label="Due in 7 days"
               value={dueSoon}
               icon={<CalendarClock />}
-              tone={dueSoon > 4 ? "warn" : "default"}
+              tone={dueSoon > 4 ? "warn" : "accent"}
             />
           </>
         }
@@ -106,37 +100,20 @@ export default async function DashboardPage() {
 
       {classes.length > 0 && <QuickAdd classes={classes} />}
 
-      {/* Asymmetric on purpose: the timeline is the spine and runs full height;
-          picks and activity stack beside it at different weights. */}
+      {/* Asymmetric on purpose: picks and today's calendar stack in the narrow
+          column; the timeline is the spine and gets the width to show dates. */}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-12">
-        {/* Calendar column: what's happening today above what's coming due. */}
+        {/* Left column: what's happening today above what to apply to today. */}
         <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-5">
           <Card
             title="Today"
+            tint="var(--accent-2)"
             className="flex min-h-0 min-w-0 flex-[2] flex-col"
             bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
           >
             <TodayEvents events={calendar.events} error={calendar.error} />
           </Card>
 
-          <Card
-            title="Timeline"
-            className="flex min-h-0 min-w-0 flex-[3] flex-col"
-            bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
-            action={
-              <Link
-                href="/calendar"
-                className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
-              >
-                Calendar <ArrowRight size={12} aria-hidden />
-              </Link>
-            }
-          >
-            <Timeline items={deadlines(assignments, apps, classes)} />
-          </Card>
-        </div>
-
-        <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-7">
           <Card
             accented
             title="Today's picks"
@@ -154,9 +131,29 @@ export default async function DashboardPage() {
             {/* Exactly three: a partial fourth row peeking out read as a scroll bug. */}
             <PickList jobs={picks.jobs.slice(0, 3)} matchPool={picks.matchPool} compact />
           </Card>
+        </div>
+
+        <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-7">
+          <Card
+            title="Timeline"
+            tint="var(--accent-3)"
+            className="flex min-h-0 min-w-0 flex-[3] flex-col"
+            bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
+            action={
+              <Link
+                href="/calendar"
+                className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+              >
+                Calendar <ArrowRight size={12} aria-hidden />
+              </Link>
+            }
+          >
+            <Timeline items={deadlines(assignments, apps, classes)} />
+          </Card>
 
           <Card
             title="Activity"
+            tint="var(--accent)"
             className="flex min-h-0 min-w-0 flex-[2] flex-col"
             bodyClass="min-h-0 flex-1 overflow-hidden px-5 pt-1 pb-5"
           >

@@ -5,6 +5,9 @@ import { animate } from "motion/react";
 
 const TONES = {
   default: "text-text",
+  accent: "text-accent",
+  blue: "text-accent-2",
+  navy: "text-accent-3",
   ok: "text-ok",
   warn: "text-warn",
   danger: "text-danger",
@@ -16,6 +19,9 @@ const TONES = {
  *  cross the server/client boundary, and every caller here is a server page. */
 export const ICON_TILE_TONES = {
   default: "bg-accent-soft text-accent",
+  accent: "bg-accent-soft text-accent",
+  blue: "bg-accent-2-soft text-accent-2",
+  navy: "bg-accent-3-soft text-accent-3",
   ok: "bg-ok/12 text-ok",
   warn: "bg-warn/12 text-warn",
   danger: "bg-danger/12 text-danger",

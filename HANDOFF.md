@@ -1,4 +1,4 @@
-# Work Dashboard — Handoff
+# Workbench — Handoff
 
 Built 2026-08-10. Everything below is implemented and verified unless a section says otherwise.
 
@@ -116,6 +116,11 @@ Delete a file to reset that section; `read()` falls back to an empty value.
 - Tailwind v4 `@theme inline` maps those variables to utility names: `bg-surface`, `text-muted`, `border-border`, `text-accent`, and so on.
 - Theme toggle (system / light / dark) sits in the sidebar footer, persists to `localStorage`, and is applied by a tiny inline script in `<head>` so there is no flash of the wrong theme.
 - Dark mode is the **same design**, not a different one: identical layout, spacing, and shadows; only the palette swaps.
+- Palette: a warm off-white ground and one blue ramp, no second hue. `--accent-3` is the darkest blue the set allows (`#071A33` light — near-black and still reading blue), `--accent` the navy lead, `--accent-2` the light-blue end. The three are spread across the tinted cards, the hero rule, the sidebar's active bar, and the stat chips. Semantic colors stay green/amber/red.
+- Dark-mode accents sit at roughly 5-7:1 on `--surface`, not the 8-11:1 they started at — brighter than that and they glowed against the warm gray. The chip tints follow: `--soft-mix` is 14% in light, 8% in dark, because the same mix over a dark surface leaves the label short of AA.
+- Gradients carry the depth: `--surface-gradient` (cards darken slightly toward the bottom), `--glow` (one wash, top-left, behind page headers), the primary button's top highlight, and the accented card's rule. Two earlier ambient washes — a second one on the right of every header and a radial in each tinted card's corner — were cut: together they tinted the whole page rather than accenting it.
+- Icons and install: `app/icon.svg` is the tab/taskbar favicon, `app/apple-icon.png` the iOS home-screen icon, and `app/manifest.ts` names the installed app "Workbench" with the `public/icon-*.png` set. `components/Logo.tsx` repeats the icon's geometry with fixed hexes — edit it and `app/icon.svg` together. `proxy.ts` lets these paths past the password gate: install-time fetches carry no cookie, and a gated manifest installs as a blank icon.
+- The dashboard header line comes from `lib/greeting.ts` — a hour-bucketed pool (night/morning/afternoon/evening), half plain and half joke, picked per request. Keep it server-side; picking on both sides would be a hydration mismatch.
 - `lib/chartTheme.ts` holds light and dark variants of every series color and re-renders charts on theme change (matchMedia + MutationObserver on `data-theme`), so nothing washes out. `colorFor(id)` hashes a class id to a stable color, so a class keeps its color everywhere.
 
 ---

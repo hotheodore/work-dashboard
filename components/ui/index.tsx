@@ -16,6 +16,7 @@ export function Card({
   interactive = false,
   spine,
   accented = false,
+  tint,
   children,
 }: {
   title?: ReactNode;
@@ -28,14 +29,20 @@ export function Card({
   spine?: string;
   /** Gradient rule on the top edge. One per screen — it means "start here". */
   accented?: boolean;
+  /** A CSS color for this card's identity: top rule plus a faint corner wash.
+   *  Ignored when `accented` is set — both draw on ::before. */
+  tint?: string;
   children: ReactNode;
 }) {
   return (
     <section
       className={`card ${interactive ? "card-interactive" : ""} ${spine ? "card-spine" : ""} ${
-        accented ? "card-accented" : ""
+        accented ? "card-accented" : tint ? "card-tinted" : ""
       } ${className}`}
-      style={spine ? classVar(spine) : undefined}
+      style={{
+        ...(spine ? classVar(spine) : null),
+        ...(tint && !accented ? ({ ["--tint" as string]: tint } as React.CSSProperties) : null),
+      }}
     >
       {(title || action) && (
         <header className="flex items-center justify-between gap-3 px-5 pt-4 pb-3">
@@ -65,6 +72,8 @@ export function StatGrid({
 const BADGE_TONES: Record<string, string> = {
   default: "bg-surface-2 text-muted",
   accent: "bg-accent-soft text-accent",
+  blue: "bg-accent-2-soft text-accent-2",
+  navy: "bg-accent-3-soft text-accent-3",
   ok: "bg-ok/12 text-ok",
   warn: "bg-warn/12 text-warn",
   danger: "bg-danger/12 text-danger",

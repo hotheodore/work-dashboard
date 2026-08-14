@@ -11,7 +11,7 @@ export { SERIES, colorFor, classHue, classVar } from "./classColors";
 export interface ChartTheme {
   dark: boolean;
   series: string[];
-  /** The live site accent (steely blue), read from --accent — not series[0],
+  /** The live site accent (navy), read from --accent — not series[0],
    *  which is a class color and stays independent of the brand color. Used
    *  for accent-tinted surfaces like the activity heatmap. */
   accent: string;
@@ -28,25 +28,25 @@ export interface ChartTheme {
 const LIGHT: ChartTheme = {
   dark: false,
   series: SERIES.light,
-  accent: "#3f6690",
-  grid: "#eae7e1",
-  axis: "#8b857a",
-  muted: "#d6d1c8",
+  accent: "#14427e",
+  grid: "#ece9e1",
+  axis: "#8a8478",
+  muted: "#d8d3c8",
   tooltipBg: "#ffffff",
-  tooltipBorder: "#e5e1da",
-  text: "#23211d",
+  tooltipBorder: "#e3e0d8",
+  text: "#1f1e1c",
 };
 
 const DARK: ChartTheme = {
   dark: true,
   series: SERIES.dark,
-  accent: "#8fb4d9",
-  grid: "#333331",
-  axis: "#97948c",
-  muted: "#4a4a46",
-  tooltipBg: "#292927",
-  tooltipBorder: "#403f3b",
-  text: "#ecebe8",
+  accent: "#5ea3d4",
+  grid: "#30302e",
+  axis: "#9b968c",
+  muted: "#4a4844",
+  tooltipBg: "#262625",
+  tooltipBorder: "#3d3c39",
+  text: "#f0eee7",
 };
 
 function compute(): ChartTheme {

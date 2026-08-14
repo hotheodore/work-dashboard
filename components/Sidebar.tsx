@@ -39,7 +39,7 @@ export default function Sidebar() {
       <div className="mb-5 flex items-center gap-2.5 px-2">
         <Logo size={32} />
         <span className="hidden text-sm font-semibold tracking-tight lg:block">
-          Work Dashboard
+          Workbench
         </span>
       </div>
 
@@ -59,7 +59,7 @@ export default function Sidebar() {
               {active && (
                 <motion.span
                   layoutId="nav-active"
-                  className="absolute inset-0 rounded-[var(--radius-sm)] bg-accent-soft before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-accent"
+                  className="absolute inset-0 rounded-[var(--radius-sm)] bg-accent-soft before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-[linear-gradient(180deg,var(--accent-2),var(--accent-3))]"
                   transition={{ type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}

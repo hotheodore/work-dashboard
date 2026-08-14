@@ -9,7 +9,7 @@ export default function LoginForm({ next }: { next: string }) {
 
   return (
     <div className="mx-auto mt-[15vh] w-full max-w-sm">
-      <Card title="Work Dashboard">
+      <Card title="Workbench">
         <form action={action} className="space-y-3">
           <input type="hidden" name="next" value={next} />
           <Field label="Password">

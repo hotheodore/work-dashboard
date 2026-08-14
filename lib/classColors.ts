@@ -1,10 +1,12 @@
 /** Stable series palette, colorblind-safe ordering, one variant per theme.
- *  [0] is the accent so accent-tinted surfaces (the heatmap) track the brand.
+ *  Independent of --accent on purpose: the heatmap reads the live --accent,
+ *  and class identity should survive a rebrand without eight classes changing
+ *  color. Warm-biased to sit against the cool accents.
  *  Kept in a directive-free module so server components can use it too —
  *  lib/chartTheme.ts is "use client" and re-exports from here. */
 export const SERIES = {
-  light: ["#5b52e0", "#0f7a8a", "#7b3fd4", "#a8467a", "#157f5a", "#c0392b", "#2b7fb8", "#8a6a3d"],
-  dark: ["#a5a0ff", "#56c2c8", "#c98bff", "#d98cb0", "#6ec9a0", "#e88b7d", "#7cc0ea", "#cbab7a"],
+  light: ["#9c4526", "#17655a", "#853d5e", "#8e5214", "#426627", "#5a4285", "#3d598e", "#664a33"],
+  dark: ["#d9805c", "#4bb09c", "#d07f9c", "#d19a4d", "#86b85c", "#a189d6", "#7c9bcc", "#b28e70"],
 };
 
 /** Deterministic 0–7 slot for a class id, stable across themes and renders.
