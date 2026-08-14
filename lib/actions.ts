@@ -195,3 +195,12 @@ export async function saveSettings(settings: Settings) {
 export async function newNoteId() {
   return store.newId();
 }
+
+/* ---------------- google calendar ---------------- */
+
+/** Drops the stored refresh token. Reconnecting means a fresh consent screen. */
+export async function disconnectGoogle() {
+  await store.clearGoogleTokens();
+  revalidatePath("/settings");
+  revalidatePath("/");
+}

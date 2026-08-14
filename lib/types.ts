@@ -101,6 +101,34 @@ export interface SourceRun {
   detail?: string;
 }
 
+/**
+ * Google OAuth credentials for the single connected account. The refresh token
+ * is long-lived and is the connection; the access token is a cache so most page
+ * loads skip the refresh round trip.
+ */
+export interface GoogleTokens {
+  refreshToken: string;
+  accessToken?: string;
+  accessTokenExpiry?: string; // ISO
+  /** Google account email, shown in Settings so you know which account is linked. */
+  account?: string;
+  connectedAt?: string; // ISO
+}
+
+/** One occurrence from Google Calendar, flattened across all calendars. */
+export interface CalendarEvent {
+  id: string;
+  calendarId: string;
+  calendarLabel: string;
+  calendarColor?: string;
+  title: string;
+  start: string; // ISO datetime, or YYYY-MM-DD when allDay
+  end: string;
+  allDay: boolean;
+  location?: string;
+  url?: string;
+}
+
 export interface ListingsCache {
   fetchedAt: string | null;
   jobs: Job[];

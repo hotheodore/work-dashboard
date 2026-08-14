@@ -1,15 +1,27 @@
 import PageHeader from "@/components/PageHeader";
 import { Badge } from "@/components/ui";
 import SettingsForm from "@/components/settings/SettingsForm";
+import GoogleCalendar from "@/components/settings/GoogleCalendar";
 import { getListings, getSettings } from "@/lib/store";
 import { hasKey } from "@/lib/claude";
+import { configured as googleConfigured, connection } from "@/lib/google";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
 
-export default async function SettingsPage() {
-  const [settings, listings] = await Promise.all([getSettings(), getListings()]);
+export default async function SettingsPage({ searchParams }: PageProps<"/settings">) {
+  const [settings, listings, google, params] = await Promise.all([
+    getSettings(),
+    getListings(),
+    connection(),
+    searchParams,
+  ]);
   const key = hasKey();
+  const cfg = googleConfigured();
+
+  // Set by /api/google/callback on the way back from consent.
+  const outcome = typeof params.google === "string" ? params.google : undefined;
+  const reason = typeof params.reason === "string" ? params.reason : undefined;
 
   return (
     <>
@@ -27,12 +39,22 @@ export default async function SettingsPage() {
           </Badge>
         }
       />
-      <SettingsForm
-        initial={settings}
-        fetchedAt={listings.fetchedAt}
-        cachedCount={listings.jobs.length}
-        sources={listings.sources ?? []}
-      />
+      <div className="space-y-6">
+        <GoogleCalendar
+          connected={Boolean(google)}
+          account={google?.account}
+          reason={cfg.ok ? undefined : cfg.reason}
+          status={
+            outcome ? { ok: outcome === "connected", detail: reason ?? "unknown error" } : undefined
+          }
+        />
+        <SettingsForm
+          initial={settings}
+          fetchedAt={listings.fetchedAt}
+          cachedCount={listings.jobs.length}
+          sources={listings.sources ?? []}
+        />
+      </div>
     </>
   );
 }

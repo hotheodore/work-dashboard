@@ -59,6 +59,25 @@ Seed the resume from a PDF once, then edit it on the Resume page:
 npm run seed:resume -- "path/to/Resume.pdf"
 ```
 
+### Optional: Google Calendar
+
+The dashboard's **Today** card lists today's events from every calendar on one Google account, read-only. To enable it:
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/apis/credentials), enable the **Google Calendar API** and create an **OAuth 2.0 Client ID** of type *Web application*.
+2. Add the redirect URIs you will use — `http://localhost:3000/api/google/callback` for local dev, and `https://<your-domain>/api/google/callback` for the deploy.
+3. Add the credentials:
+
+   ```bash
+   # .env.local
+   GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=...
+   GOOGLE_REDIRECT_URI=http://localhost:3000/api/google/callback
+   ```
+
+4. Restart the dev server, open **Settings**, and click **Connect Google Calendar**.
+
+The refresh token is stored alongside the rest of your data (`data/google-tokens.json` locally, Blob when hosted). Disconnecting from Settings deletes it.
+
 ## Deploying
 
 The app runs on Vercel. A serverless filesystem is read-only and discarded between requests, so the hosted instance keeps the same JSON files in [Vercel Blob](https://vercel.com/docs/vercel-blob) instead of `data/`. The switch is automatic: `lib/store.ts` uses Blob whenever `BLOB_READ_WRITE_TOKEN` is set, and local disk otherwise, so `npm run dev` is unchanged.
@@ -73,6 +92,9 @@ The app runs on Vercel. A serverless filesystem is read-only and discarded betwe
    | `DASHBOARD_PASSWORD` | yes | The password for the sign-in page. Without it the site is public |
    | `ANTHROPIC_API_KEY` | optional | Resume tailoring, cover letters, syllabus parsing |
    | `CRON_SECRET` | optional | Lets the daily listings cron through the password gate |
+   | `GOOGLE_CLIENT_ID` | optional | Google Calendar OAuth client |
+   | `GOOGLE_CLIENT_SECRET` | optional | Google Calendar OAuth client |
+   | `GOOGLE_REDIRECT_URI` | optional | `https://<your-domain>/api/google/callback` — must match the console exactly |
    | `HANDSHAKE_COOKIE` | optional | Enables the Handshake source — the `Cookie` header from a signed-in request |
    | `HANDSHAKE_HOST` | optional | Your school's host, e.g. `myschool.joinhandshake.com` (default `app.joinhandshake.com`) |
    | `SERPAPI_KEY` | optional | Enables the Indeed source via SerpApi's `indeed` engine |

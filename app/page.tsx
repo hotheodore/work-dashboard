@@ -5,11 +5,14 @@ import { Card, EmptyState, StatChip } from "@/components/ui";
 import ActivityHeatmap from "@/components/charts/ActivityHeatmap";
 import ProgressRing from "@/components/charts/ProgressRing";
 import Timeline from "@/components/Timeline";
+import TodayEvents from "@/components/TodayEvents";
 import PickList from "@/components/internships/PickList";
 import QuickAdd from "@/components/assignments/QuickAdd";
 import { getApplications, getAssignments, getClasses } from "@/lib/store";
 import { getDailyPicks } from "@/lib/jobs";
+import { connection, fetchTodayEvents } from "@/lib/google";
 import { activityCounts, dayKey, deadlines } from "@/lib/derive";
+import type { CalendarEvent } from "@/lib/types";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
@@ -21,12 +24,23 @@ function greeting(h: number) {
   return "Good evening";
 }
 
+/** Google being down or unlinked must not take the whole dashboard with it. */
+async function todayEvents(): Promise<{ events: CalendarEvent[]; error?: string }> {
+  if (!(await connection())) return { events: [], error: "Google Calendar isn't connected." };
+  try {
+    return { events: await fetchTodayEvents() };
+  } catch (e) {
+    return { events: [], error: e instanceof Error ? e.message : "Could not reach Google Calendar." };
+  }
+}
+
 export default async function DashboardPage() {
-  const [classes, assignments, apps, picks] = await Promise.all([
+  const [classes, assignments, apps, picks, calendar] = await Promise.all([
     getClasses(),
     getAssignments(),
     getApplications(),
     getDailyPicks(),
+    todayEvents(),
   ]);
 
   const now = new Date();
@@ -95,21 +109,32 @@ export default async function DashboardPage() {
       {/* Asymmetric on purpose: the timeline is the spine and runs full height;
           picks and activity stack beside it at different weights. */}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-12">
-        <Card
-          title="Timeline"
-          className="flex min-h-0 min-w-0 flex-col lg:col-span-5"
-          bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
-          action={
-            <Link
-              href="/calendar"
-              className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
-            >
-              Calendar <ArrowRight size={12} aria-hidden />
-            </Link>
-          }
-        >
-          <Timeline items={deadlines(assignments, apps, classes)} />
-        </Card>
+        {/* Calendar column: what's happening today above what's coming due. */}
+        <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-5">
+          <Card
+            title="Today"
+            className="flex min-h-0 min-w-0 flex-[2] flex-col"
+            bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
+          >
+            <TodayEvents events={calendar.events} error={calendar.error} />
+          </Card>
+
+          <Card
+            title="Timeline"
+            className="flex min-h-0 min-w-0 flex-[3] flex-col"
+            bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
+            action={
+              <Link
+                href="/calendar"
+                className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+              >
+                Calendar <ArrowRight size={12} aria-hidden />
+              </Link>
+            }
+          >
+            <Timeline items={deadlines(assignments, apps, classes)} />
+          </Card>
+        </div>
 
         <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-7">
           <Card

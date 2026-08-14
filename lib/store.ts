@@ -15,6 +15,7 @@ import type {
   Application,
   Assignment,
   DailyPicks,
+  GoogleTokens,
   Klass,
   ListingsCache,
   Note,
@@ -227,6 +228,11 @@ export const getSettings = async (): Promise<Settings> => ({
   ...(await read<Partial<Settings>>("settings.json", {})),
 });
 export const setSettings = (v: Settings) => write("settings.json", v);
+
+/** Google Calendar OAuth credentials. Null until you connect in Settings. */
+export const getGoogleTokens = () => read<GoogleTokens | null>("google-tokens.json", null);
+export const setGoogleTokens = (v: GoogleTokens) => write("google-tokens.json", v);
+export const clearGoogleTokens = () => deleteRaw("google-tokens.json");
 
 export const getListings = () =>
   read<ListingsCache>("listings-cache.json", { fetchedAt: null, jobs: [] });
