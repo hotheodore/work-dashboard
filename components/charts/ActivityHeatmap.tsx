@@ -198,9 +198,9 @@ export default function ActivityHeatmap({
   // whether the stats fit beside the grid.
   return (
     <div className="@container min-w-0">
-      <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-6">
+      <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-4">
         {grid}
-        <div className="flex items-center @[30rem]:ml-auto @[30rem]:shrink-0">
+        <div className="flex items-center gap-8 @[30rem]:ml-auto @[30rem]:shrink-0">
           {aside}
           <dl className="grid flex-1 grid-cols-3 gap-6 border-border @[30rem]:grid-cols-1 @[30rem]:gap-4 @[30rem]:border-l @[30rem]:pl-6">
             {[
