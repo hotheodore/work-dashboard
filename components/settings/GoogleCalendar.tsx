@@ -38,7 +38,13 @@ export default function GoogleCalendar({
           : "Connect a Google account to see today's events on the dashboard. Read-only access."}
       </p>
 
-      {reason && <p className="mt-2 text-xs text-muted">{reason}</p>}
+      {/* A greyed-out button with a quiet grey line under it reads as broken, so
+          say plainly that the button is off and what turns it on. */}
+      {reason && (
+        <p className="mt-2 rounded-[var(--radius-sm)] border border-border bg-surface-2 px-3 py-2 text-xs text-warn">
+          Connecting is unavailable here — {reason}.
+        </p>
+      )}
       {status && (
         <p className={`mt-2 text-xs ${status.ok ? "text-[var(--ok)]" : "text-[var(--danger)]"}`}>
           {status.ok ? "Google Calendar connected." : `Could not connect — ${status.detail}`}
@@ -68,6 +74,7 @@ export default function GoogleCalendar({
                 : "bg-accent bg-[linear-gradient(180deg,color-mix(in_oklab,#fff_14%,var(--accent)),var(--accent))] text-accent-text shadow-[var(--shadow-sm),inset_0_1px_0_rgb(255_255_255/0.18)] hover:brightness-108"
             }`}
             aria-disabled={Boolean(reason)}
+            title={reason}
           >
             Connect Google Calendar
           </a>
