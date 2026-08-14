@@ -10,55 +10,121 @@
   --text-muted: #6b665e;
   /* Used for the uppercase eyebrow labels, so it has to clear AA — not just decoration. */
   --text-faint: #757064;
-  --accent: #3b6ea8;
+  --accent: #5b52e0;
   --accent-text: #ffffff;
   --ok: #157f5a;
   --warn: #b4700f;
   --danger: #c0392b;
-  --shadow: 0 1px 2px rgb(35 33 29 / 0.04), 0 6px 20px -12px rgb(35 33 29 / 0.14);
-  --shadow-lift: 0 2px 4px rgb(35 33 29 / 0.05), 0 12px 28px -14px rgb(35 33 29 / 0.22);
+
+  /* Class identity palette — mirrors SERIES.light in lib/classColors.ts.
+     classHue(id) picks the index; the var resolves per theme, which is how a
+     server component colors a class without knowing the active theme. */
+  --class-0: #5b52e0;
+  --class-1: #0f7a8a;
+  /* Not amber: --warn owns amber, and application deadlines render in it
+     right beside class swatches in the calendar legend. */
+  --class-2: #7b3fd4;
+  --class-3: #a8467a;
+  --class-4: #157f5a;
+  --class-5: #c0392b;
+  --class-6: #2b7fb8;
+  --class-7: #8a6a3d;
+
+  --shadow-sm: 0 1px 2px rgb(35 33 29 / 0.05);
+  --shadow-md: 0 1px 2px rgb(35 33 29 / 0.04), 0 4px 10px -4px rgb(35 33 29 / 0.08),
+    0 16px 32px -20px rgb(35 33 29 / 0.16);
+  --shadow-lg: 0 1px 2px rgb(35 33 29 / 0.05), 0 8px 18px -6px rgb(35 33 29 / 0.12),
+    0 28px 48px -24px rgb(35 33 29 / 0.26);
   --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.9);
 }
 
-/* ---- design tokens: dark (warm gray) ---- */
-/* Applied for system-dark unless explicitly overridden to light, and for the
-   explicit dark toggle. Both selectors share one block so they cannot drift. */
+/* ---- design tokens: dark (warm gray) ----
+   Values live here once. The two selectors below only *map* them, so the
+   system-preference theme and the explicit toggle cannot drift apart — which
+   is exactly what happened when each block carried its own hexes. */
+:root {
+  --d-bg: #1e1e1c;
+  --d-surface: #292927;
+  --d-surface-2: #333331;
+  --d-border: #403f3b;
+  --d-text: #ecebe8;
+  --d-text-muted: #a5a29b;
+  --d-text-faint: #97948c;
+  --d-accent: #a5a0ff;
+  --d-accent-text: #1c1a3d;
+  --d-ok: #6ec9a0;
+  --d-warn: #e0b25c;
+  --d-danger: #e88b7d;
+  --d-class-0: #a5a0ff;
+  --d-class-1: #56c2c8;
+  --d-class-2: #c98bff;
+  --d-class-3: #d98cb0;
+  --d-class-4: #6ec9a0;
+  --d-class-5: #e88b7d;
+  --d-class-6: #7cc0ea;
+  --d-class-7: #cbab7a;
+  --d-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --d-shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 10px -4px rgb(0 0 0 / 0.4),
+    0 16px 32px -20px rgb(0 0 0 / 0.6);
+  --d-shadow-lg: 0 1px 2px rgb(0 0 0 / 0.35), 0 8px 18px -6px rgb(0 0 0 / 0.45),
+    0 28px 48px -24px rgb(0 0 0 / 0.7);
+  --d-card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1c1c1c;
-    --surface: #262626;
-    --surface-2: #303030;
-    --border: #3b3b3b;
-    --text: #ecebea;
-    --text-muted: #a3a3a1;
-    --text-faint: #908f8c;
-    --accent: #6a9fd8;
-    --accent-text: #16273d;
-    --ok: #6ec9a0;
-    --warn: #e0b25c;
-    --danger: #e88b7d;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px -12px rgb(0 0 0 / 0.5);
-    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 12px 28px -14px rgb(0 0 0 / 0.6);
-    --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+    --bg: var(--d-bg);
+    --surface: var(--d-surface);
+    --surface-2: var(--d-surface-2);
+    --border: var(--d-border);
+    --text: var(--d-text);
+    --text-muted: var(--d-text-muted);
+    --text-faint: var(--d-text-faint);
+    --accent: var(--d-accent);
+    --accent-text: var(--d-accent-text);
+    --ok: var(--d-ok);
+    --warn: var(--d-warn);
+    --danger: var(--d-danger);
+    --class-0: var(--d-class-0);
+    --class-1: var(--d-class-1);
+    --class-2: var(--d-class-2);
+    --class-3: var(--d-class-3);
+    --class-4: var(--d-class-4);
+    --class-5: var(--d-class-5);
+    --class-6: var(--d-class-6);
+    --class-7: var(--d-class-7);
+    --shadow-sm: var(--d-shadow-sm);
+    --shadow-md: var(--d-shadow-md);
+    --shadow-lg: var(--d-shadow-lg);
+    --card-highlight: var(--d-card-highlight);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #262624;
-  --surface: #30302e;
-  --surface-2: #3a3a37;
-  --border: #45453f;
-  --text: #ecebe8;
-  --text-muted: #a8a49c;
-  --text-faint: #9d988e;
-  --accent: #6a9fd8;
-  --accent-text: #16273d;
-  --ok: #6ec9a0;
-  --warn: #e0b25c;
-  --danger: #e88b7d;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px -12px rgb(0 0 0 / 0.5);
-  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.35), 0 12px 28px -14px rgb(0 0 0 / 0.6);
-  --card-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --bg: var(--d-bg);
+  --surface: var(--d-surface);
+  --surface-2: var(--d-surface-2);
+  --border: var(--d-border);
+  --text: var(--d-text);
+  --text-muted: var(--d-text-muted);
+  --text-faint: var(--d-text-faint);
+  --accent: var(--d-accent);
+  --accent-text: var(--d-accent-text);
+  --ok: var(--d-ok);
+  --warn: var(--d-warn);
+  --danger: var(--d-danger);
+  --class-0: var(--d-class-0);
+  --class-1: var(--d-class-1);
+  --class-2: var(--d-class-2);
+  --class-3: var(--d-class-3);
+  --class-4: var(--d-class-4);
+  --class-5: var(--d-class-5);
+  --class-6: var(--d-class-6);
+  --class-7: var(--d-class-7);
+  --shadow-sm: var(--d-shadow-sm);
+  --shadow-md: var(--d-shadow-md);
+  --shadow-lg: var(--d-shadow-lg);
+  --card-highlight: var(--d-card-highlight);
 }
 
 /* Derived from --accent so the tint always carries the surface temperature.
@@ -66,10 +132,21 @@
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 14%, var(--surface));
   --accent-ring: color-mix(in oklab, var(--accent) 35%, transparent);
+  /* The depth cue: cards sit a hair darker at the bottom than at the top. */
+  --surface-gradient: linear-gradient(
+    180deg,
+    var(--surface),
+    color-mix(in oklab, var(--surface-2) 40%, var(--surface))
+  );
+  --glow: radial-gradient(60% 130% at 15% 0%, var(--accent-soft), transparent 70%);
   --radius: 0.875rem;
   --radius-sm: 0.5rem;
   --radius-lg: 1.25rem;
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Aliases so anything still on the old two-shadow names keeps working. */
+  --shadow: var(--shadow-md);
+  --shadow-lift: var(--shadow-lg);
 }
 
 @theme inline {
@@ -87,10 +164,12 @@
   --color-ok: var(--ok);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
+  /* bg-class / text-class / border-class read whatever --class-color is in scope. */
+  --color-class: var(--class-color, var(--accent));
   --radius-card: var(--radius);
   --radius-card-sm: var(--radius-sm);
   --radius-card-lg: var(--radius-lg);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-jakarta);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -112,10 +191,11 @@ h1, h2, h3 { letter-spacing: -0.02em; }
 .tabular { font-variant-numeric: tabular-nums; }
 
 .card {
-  background: var(--surface);
+  position: relative;
+  background: var(--surface-gradient);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow), var(--card-highlight);
+  box-shadow: var(--shadow-md), var(--card-highlight);
 }
 
 /* Opt-in: only cards that are actually a link or button should move. */
@@ -124,8 +204,49 @@ h1, h2, h3 { letter-spacing: -0.02em; }
     border-color 0.2s var(--ease-out);
 }
 .card-interactive:hover {
-  box-shadow: var(--shadow-lift), var(--card-highlight);
+  box-shadow: var(--shadow-lg), var(--card-highlight);
   transform: translateY(-1px);
+}
+
+/* Entity identity: a 3px colored edge drawn inside the card, so turning it on
+   never shifts the card's layout by a pixel. */
+.card-spine::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--class-color, var(--accent));
+}
+
+/* Hero card only — one per screen, or it stops meaning "start here". */
+.card-accented::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, var(--accent), transparent 70%);
+}
+
+/* Ambient wash behind a page header. Sits under content and never takes clicks. */
+/* Insets stay non-negative: bleeding past the right edge gave the whole
+   document a horizontal scrollbar. */
+.glow-header { position: relative; }
+.glow-header::before {
+  content: "";
+  position: absolute;
+  inset: -4rem 0 auto 0;
+  height: 22rem;
+  background: var(--glow);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* For lists that scroll inside a fixed-height card: the last row fades out, so
+   the cut edge reads as "more below" instead of as a clipped row. */
+.fade-bottom {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2rem), transparent 100%);
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }

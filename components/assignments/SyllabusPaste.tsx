@@ -8,7 +8,6 @@ import { Button, inputClass } from "@/components/ui";
 interface Draft {
   title: string;
   dueDate: string;
-  weight: number;
 }
 
 export default function SyllabusPaste({ classId }: { classId: string }) {
@@ -52,9 +51,7 @@ export default function SyllabusPaste({ classId }: { classId: string }) {
           classId,
           title: d.title.trim(),
           dueDate: d.dueDate,
-          weight: Number(d.weight) || 0,
           status: "todo" as const,
-          grade: null,
           completedAt: null,
         })),
       );
@@ -68,7 +65,7 @@ export default function SyllabusPaste({ classId }: { classId: string }) {
     <div className="space-y-3">
       <textarea
         className={`${inputClass} h-32 resize-y font-mono text-xs`}
-        placeholder="Paste syllabus text here — Claude extracts assignments, due dates, and weights. You review before anything is saved."
+        placeholder="Paste syllabus text here — Claude extracts assignments and due dates. You review before anything is saved."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
@@ -87,7 +84,7 @@ export default function SyllabusPaste({ classId }: { classId: string }) {
           </p>
           <div className="space-y-2">
             {drafts.map((d, i) => (
-              <div key={i} className="grid grid-cols-[1fr_140px_90px] gap-2">
+              <div key={i} className="grid grid-cols-[1fr_140px] gap-2">
                 <input
                   className={`${inputClass} text-xs`}
                   value={d.title}
@@ -98,12 +95,6 @@ export default function SyllabusPaste({ classId }: { classId: string }) {
                   className={`${inputClass} text-xs`}
                   value={d.dueDate}
                   onChange={(e) => edit(i, { dueDate: e.target.value })}
-                />
-                <input
-                  type="number"
-                  className={`${inputClass} text-xs`}
-                  value={d.weight}
-                  onChange={(e) => edit(i, { weight: Number(e.target.value) })}
                 />
               </div>
             ))}

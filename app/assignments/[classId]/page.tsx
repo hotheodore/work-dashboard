@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ListChecks, CircleCheckBig, CalendarClock } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Card, StatGrid, StatTile } from "@/components/ui";
 import {
@@ -12,7 +13,8 @@ import SyllabusUpload from "@/components/assignments/SyllabusUpload";
 import DueTimeline from "@/components/charts/DueTimeline";
 import { getAssignments, getClasses } from "@/lib/store";
 import { timelineData } from "@/lib/derive";
-import { classGrade } from "@/lib/grades";
+import { completion } from "@/lib/progress";
+import { classVar } from "@/lib/classColors";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
@@ -24,13 +26,16 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
   if (!klass) notFound();
 
   const mine = all.filter((a) => a.classId === classId);
-  const g = classGrade(mine);
+  const pct = completion(mine);
+  const open = mine.filter((a) => a.status !== "done");
+  const next = [...open].sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
 
   return (
     <>
       <PageHeader
+        eyebrow={klass.code || klass.term || "Class"}
         title={klass.name}
-        subtitle={[klass.code, klass.term, klass.professor && `Prof. ${klass.professor}`]
+        subtitle={[klass.term, klass.professor && `Prof. ${klass.professor}`, klass.location]
           .filter(Boolean)
           .join(" · ")}
         action={
@@ -42,28 +47,25 @@ export default async function ClassPage({ params }: PageProps<"/assignments/[cla
         }
       />
 
-      {klass.location && <p className="-mt-4 mb-4 text-sm text-muted">{klass.location}</p>}
-
-      <StatGrid>
+      <StatGrid cols={3}>
         <StatTile
           label="Assignments"
+          icon={<ListChecks />}
           value={mine.length}
           hint={`${mine.filter((a) => a.status === "done").length} done`}
         />
         <StatTile
           label="Completion"
-          value={`${Math.round(g.completion)}%`}
-          hint={`${mine.filter((a) => a.status !== "done").length} still open`}
+          icon={<CircleCheckBig />}
+          value={`${Math.round(pct)}%`}
+          tone={pct === 100 && mine.length ? "ok" : "default"}
         />
         <StatTile
-          label="Current grade"
-          value={g.current === null ? "—" : `${g.current.toFixed(1)}%`}
-          hint={`${g.gradedWeight}% of grade graded`}
-        />
-        <StatTile
-          label="Projected final"
-          value={g.projected === null ? "—" : `${g.projected.toFixed(1)}%`}
-          hint={g.totalWeight < 95 ? `${g.totalWeight}% of weight entered` : "at current average"}
+          label="Still open"
+          icon={<CalendarClock />}
+          value={open.length}
+          hint={next ? `Next: ${next.title} (${next.dueDate})` : "Nothing outstanding"}
+          tone={open.length > 4 ? "warn" : "default"}
         />
       </StatGrid>
 

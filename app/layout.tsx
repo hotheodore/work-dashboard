@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import "./globals.css";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// Jakarta for UI, Geist Mono for every number that has to line up. The pairing
+// is the identity — a geometric sans against mono numerals.
+const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -16,14 +18,14 @@ const THEME_SCRIPT = `try{var t=localStorage.getItem('theme');if(t&&t!=='system'
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full font-sans">
         <div className="flex min-h-screen">
           <Sidebar />
-          <main className="min-w-0 flex-1 px-5 py-6 lg:px-8">
+          <main className="glow-header min-w-0 flex-1 px-5 py-6 lg:px-8">
             {/* Capped so grids stay dense on wide monitors instead of stretching. */}
             <div className="mx-auto w-full max-w-[1400px]">{children}</div>
           </main>

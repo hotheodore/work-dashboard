@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
 
 const LINKS = [
   { href: "/", label: "Dashboard", Icon: LayoutDashboard },
@@ -33,11 +34,10 @@ export default function Sidebar() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <aside className="sticky top-0 flex h-screen w-16 shrink-0 flex-col gap-1 border-r border-border bg-surface px-2 py-4 transition-all lg:w-56 lg:px-3">
+    // --bg, not --surface: the rail recedes so the cards read as floating above it.
+    <aside className="sticky top-0 z-20 flex h-screen w-16 shrink-0 flex-col gap-1 border-r border-border bg-bg px-2 py-4 transition-all lg:w-56 lg:px-3">
       <div className="mb-5 flex items-center gap-2.5 px-2">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-accent text-sm font-bold text-accent-text shadow-sm">
-          W
-        </span>
+        <Logo size={32} />
         <span className="hidden text-sm font-semibold tracking-tight lg:block">
           Work Dashboard
         </span>
@@ -59,7 +59,7 @@ export default function Sidebar() {
               {active && (
                 <motion.span
                   layoutId="nav-active"
-                  className="absolute inset-0 rounded-[var(--radius-sm)] bg-accent-soft"
+                  className="absolute inset-0 rounded-[var(--radius-sm)] bg-accent-soft before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:rounded-full before:bg-accent"
                   transition={{ type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}

@@ -99,9 +99,7 @@ export function AddAssignmentButton({
     classId: defaultClassId ?? classes[0]?.id ?? "",
     title: "",
     dueDate: new Date().toISOString().slice(0, 10),
-    weight: 10,
     status: "todo" as Status,
-    grade: "",
     notes: "",
   });
 
@@ -113,13 +111,11 @@ export function AddAssignmentButton({
         classId: form.classId,
         title: form.title.trim(),
         dueDate: form.dueDate,
-        weight: Number(form.weight) || 0,
         status: form.status,
-        grade: form.grade === "" ? null : Number(form.grade),
         notes: form.notes,
         completedAt: form.status === "done" ? new Date().toISOString() : null,
       });
-      setForm({ ...form, title: "", notes: "", grade: "" });
+      setForm({ ...form, title: "", notes: "" });
       setOpen(false);
       router.refresh();
     });
@@ -163,19 +159,6 @@ export function AddAssignmentButton({
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
               />
             </Field>
-            <Field label="Weight (% of grade)">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                step="0.5"
-                className={inputClass}
-                value={form.weight}
-                onChange={(e) => setForm({ ...form, weight: Number(e.target.value) })}
-              />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <Field label="Status">
               <select
                 className={inputClass}
@@ -186,17 +169,6 @@ export function AddAssignmentButton({
                 <option value="in-progress">In progress</option>
                 <option value="done">Done</option>
               </select>
-            </Field>
-            <Field label="Grade % (optional)">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                className={inputClass}
-                value={form.grade}
-                onChange={(e) => setForm({ ...form, grade: e.target.value })}
-                placeholder="—"
-              />
             </Field>
           </div>
           <Field label="Notes">

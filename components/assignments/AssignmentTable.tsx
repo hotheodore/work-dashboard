@@ -4,9 +4,10 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteAssignment, updateAssignment } from "@/lib/actions";
 import { Badge, Button, EmptyState, inputClass } from "@/components/ui";
+import { classVar } from "@/lib/classColors";
 import type { Assignment, Status } from "@/lib/types";
 
-type SortKey = "dueDate" | "status" | "weight" | "title";
+type SortKey = "dueDate" | "status" | "title";
 
 const STATUS_TONE: Record<Status, "default" | "warn" | "ok"> = {
   todo: "default",
@@ -29,7 +30,6 @@ export default function AssignmentTable({
     const order = { todo: 0, "in-progress": 1, done: 2 };
     return [...assignments].sort((a, b) => {
       if (sort === "dueDate") return a.dueDate.localeCompare(b.dueDate);
-      if (sort === "weight") return b.weight - a.weight;
       if (sort === "status") return order[a.status] - order[b.status];
       return a.title.localeCompare(b.title);
     });
@@ -54,7 +54,6 @@ export default function AssignmentTable({
             {([
               ["title", "Assignment"],
               ["dueDate", "Due"],
-              ["weight", "Weight"],
               ["status", "Status"],
             ] as [SortKey, string][]).map(([key, label]) => (
               <th key={key} className={th}>
@@ -66,7 +65,6 @@ export default function AssignmentTable({
                 </button>
               </th>
             ))}
-            <th className={th}>Grade</th>
             <th className={th} />
           </tr>
         </thead>
@@ -78,11 +76,14 @@ export default function AssignmentTable({
                   {a.title}
                 </span>
                 {classLabel?.[a.classId] && (
-                  <span className="ml-2 text-xs text-faint">{classLabel[a.classId]}</span>
+                  <span className="ml-2 align-middle" style={classVar(a.classId)}>
+                    <Badge tone="class" dot>
+                      {classLabel[a.classId]}
+                    </Badge>
+                  </span>
                 )}
               </td>
-              <td className="px-3 py-2 tabular-nums text-muted">{a.dueDate}</td>
-              <td className="px-3 py-2 tabular-nums text-muted">{a.weight}%</td>
+              <td className="px-3 py-2 font-mono tabular-nums text-muted">{a.dueDate}</td>
               <td className="px-3 py-2">
                 <select
                   className="rounded-md border border-border bg-surface px-2 py-1 text-xs"
@@ -100,22 +101,8 @@ export default function AssignmentTable({
                   <Badge tone={STATUS_TONE[a.status]}>{a.status}</Badge>
                 </span>
               </td>
-              <td className="px-3 py-2">
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  defaultValue={a.grade ?? ""}
-                  placeholder="—"
-                  className={`${inputClass} w-20 px-2 py-1 text-xs`}
-                  onBlur={(e) => {
-                    const v = e.target.value === "" ? null : Number(e.target.value);
-                    if (v !== (a.grade ?? null)) mutate(() => updateAssignment(a.id, { grade: v }));
-                  }}
-                />
-              </td>
               <td className="px-3 py-2 text-right">
-                <Button variant="ghost" onClick={() => mutate(() => deleteAssignment(a.id))}>
+                <Button variant="ghost" size="sm" onClick={() => mutate(() => deleteAssignment(a.id))}>
                   ✕
                 </Button>
               </td>

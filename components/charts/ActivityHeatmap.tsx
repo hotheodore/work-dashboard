@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useChartTheme } from "@/lib/chartTheme";
-import { streak } from "@/lib/grades";
+import { streak } from "@/lib/progress";
 
 const LEVELS = ["40", "73", "b3", "ff"];
 
@@ -16,17 +16,24 @@ export default function ActivityHeatmap({
   weeks = 26,
   compact = false,
   showStats = false,
+  aside,
 }: {
   counts: Record<string, number>; // YYYY-MM-DD -> activity count
   weeks?: number;
   compact?: boolean;
   /** Adds the streak / total / weekly-average summary beside the grid. */
   showStats?: boolean;
+  /** Rendered beside the summary — the dashboard puts a progress ring here.
+   *  Sits in the same right-hand cluster so it costs no extra card width. */
+  aside?: ReactNode;
 }) {
   const t = useChartTheme();
-  const [hover, setHover] = useState<{ key: string; count: number; x: number; y: number } | null>(
-    null,
-  );
+  const [hover, setHover] = useState<{
+    key: string;
+    count: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const span = compact ? Math.min(weeks, 18) : weeks;
 
@@ -50,7 +57,10 @@ export default function ActivityHeatmap({
       d.setDate(d.getDate() + w * 7);
       if (d.getMonth() !== last) {
         last = d.getMonth();
-        months.push({ col: w, label: d.toLocaleDateString(undefined, { month: "short" }) });
+        months.push({
+          col: w,
+          label: d.toLocaleDateString(undefined, { month: "short" }),
+        });
       }
     }
     return { days, months };
@@ -82,10 +92,16 @@ export default function ActivityHeatmap({
           {!compact && (
             <div
               className="mb-1 grid text-[10px] leading-none text-faint"
-              style={{ gridTemplateColumns: `repeat(${span}, ${cell})`, columnGap: 3 }}
+              style={{
+                gridTemplateColumns: `repeat(${span}, ${cell})`,
+                columnGap: 3,
+              }}
             >
               {months.map((m) => (
-                <span key={m.label + m.col} style={{ gridColumn: `${m.col + 1} / span 4` }}>
+                <span
+                  key={m.label + m.col}
+                  style={{ gridColumn: `${m.col + 1} / span 4` }}
+                >
                   {m.label}
                 </span>
               ))}
@@ -108,7 +124,8 @@ export default function ActivityHeatmap({
                 className="aspect-square rounded-[3px] transition-transform duration-100 hover:scale-125"
                 style={{ background: shade(d.count) }}
                 onMouseEnter={(e) => {
-                  const box = e.currentTarget.offsetParent as HTMLElement | null;
+                  const box = e.currentTarget
+                    .offsetParent as HTMLElement | null;
                   const r = e.currentTarget.getBoundingClientRect();
                   const p = box?.getBoundingClientRect();
                   setHover({
@@ -160,29 +177,49 @@ export default function ActivityHeatmap({
     </div>
   );
 
-  if (!showStats) return grid;
+  if (!showStats)
+    return aside ? (
+      <div className="@container min-w-0">
+        <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-8">
+          {grid}
+          <div className="@[30rem]:ml-auto @[30rem]:shrink-0">{aside}</div>
+        </div>
+      </div>
+    ) : (
+      grid
+    );
 
   const total = days.reduce((s, d) => s + d.count, 0);
   const current = streak(Object.keys(counts));
   const perWeek = total / span;
 
+  // Container queries, not viewport ones: this card is 566px wide on the
+  // dashboard and full-width elsewhere, so the window size says nothing about
+  // whether the stats fit beside the grid.
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-10">
-      {grid}
-      <dl className="grid grid-cols-3 gap-6 border-border lg:ml-auto lg:shrink-0 lg:border-l lg:pl-10">
-        {[
-          { label: "Current streak", value: `${current}d` },
-          { label: `Last ${span} weeks`, value: total },
-          { label: "Weekly average", value: perWeek.toFixed(1) },
-        ].map((s) => (
-          <div key={s.label}>
-            <dt className="text-xs font-medium uppercase tracking-[0.08em] text-faint">
-              {s.label}
-            </dt>
-            <dd className="tabular mt-1.5 text-2xl font-semibold">{s.value}</dd>
-          </div>
-        ))}
-      </dl>
+    <div className="@container min-w-0">
+      <div className="flex flex-col gap-5 @[30rem]:flex-row @[30rem]:items-center @[30rem]:gap-8">
+        {grid}
+        <div className="flex items-center gap-5 @[30rem]:ml-auto @[30rem]:shrink-0">
+          {aside}
+          <dl className="grid flex-1 grid-cols-3 gap-6 border-border @[30rem]:grid-cols-1 @[30rem]:gap-4 @[30rem]:border-l @[30rem]:pl-6">
+            {[
+              { label: "Current streak", value: `${current}d` },
+              { label: `Last ${span} weeks`, value: total },
+              { label: "Weekly average", value: perWeek.toFixed(1) },
+            ].map((s) => (
+              <div key={s.label}>
+                <dt className="text-xs font-medium uppercase tracking-[0.08em] text-faint">
+                  {s.label}
+                </dt>
+                <dd className="tabular mt-1 font-mono text-2xl leading-none font-semibold">
+                  {s.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
     </div>
   );
 }

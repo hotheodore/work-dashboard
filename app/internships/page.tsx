@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SlidersHorizontal } from "lucide-react";
+import { Award, Layers, Send, SlidersHorizontal, Timer } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { Card, StatGrid, StatTile } from "@/components/ui";
 import PickList from "@/components/internships/PickList";
@@ -33,10 +33,9 @@ export default async function InternshipsPage() {
             : "No listings cached yet — refresh them in Settings"
         }
         action={
-          // Every other page's action slot holds a button; this was a bare link.
           <Link
             href="/settings"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface-2"
+            className="inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-1.5 text-sm font-medium text-text shadow-[var(--shadow-sm)] transition-[background-color,box-shadow] hover:bg-surface-2 active:translate-y-px"
           >
             <SlidersHorizontal size={14} aria-hidden />
             Filters &amp; refresh
@@ -45,14 +44,20 @@ export default async function InternshipsPage() {
       />
 
       <StatGrid>
-        <StatTile label="Total applications" value={apps.length} />
-        <StatTile label="In play" value={active.length} />
+        <StatTile label="Total applications" icon={<Send />} value={apps.length} />
+        <StatTile label="In play" icon={<Timer />} value={active.length} />
         <StatTile
           label="Offers"
+          icon={<Award />}
           value={apps.filter((a) => a.status === "offer").length}
           tone="ok"
         />
-        <StatTile label="Matching pool" value={picks.matchPool} hint="unseen postings that fit your filters" />
+        <StatTile
+          label="Matching pool"
+          icon={<Layers />}
+          value={picks.matchPool}
+          hint="unseen postings that fit your filters"
+        />
       </StatGrid>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-3">

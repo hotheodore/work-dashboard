@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CalendarClock, MessagesSquare, Send } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { Card, EmptyState, StatGrid, StatTile } from "@/components/ui";
-import DeadlineList from "@/components/DeadlineList";
+import { Card, EmptyState, StatChip } from "@/components/ui";
 import ActivityHeatmap from "@/components/charts/ActivityHeatmap";
-import TodayAssignments from "@/components/TodayAssignments";
+import ProgressRing from "@/components/charts/ProgressRing";
+import Timeline from "@/components/Timeline";
 import PickList from "@/components/internships/PickList";
+import QuickAdd from "@/components/assignments/QuickAdd";
 import { getApplications, getAssignments, getClasses } from "@/lib/store";
 import { getDailyPicks } from "@/lib/jobs";
 import { activityCounts, dayKey, deadlines } from "@/lib/derive";
@@ -29,7 +30,6 @@ export default async function DashboardPage() {
   ]);
 
   const now = new Date();
-  const today = dayKey(now);
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
@@ -42,23 +42,47 @@ export default async function DashboardPage() {
   }).length;
 
   const counts = activityCounts(assignments, apps);
-  const dueToday = assignments.filter((a) => a.dueDate === today && a.status !== "done");
 
+  // Today's completion drives the ring beside the heatmap.
+  const today = dayKey(now);
+  const dueToday = assignments.filter((a) => a.dueDate === today);
+  const doneToday = dueToday.filter((a) => a.status === "done").length;
+  const todayPct = dueToday.length ? (doneToday / dueToday.length) * 100 : 0;
   const empty = !classes.length && !apps.length && !picks.jobs.length;
 
   return (
-    <>
+    // Locked to the viewport on desktop so the dashboard never scrolls — the
+    // lists inside scroll instead. Below lg it falls back to normal flow.
+    <div className="flex flex-col lg:h-[calc(100vh-3rem)] lg:overflow-hidden">
       <PageHeader
-        title={greeting(now.getHours())}
-        subtitle={now.toLocaleDateString(undefined, {
+        className="mb-5"
+        eyebrow={now.toLocaleDateString(undefined, {
           weekday: "long",
           month: "long",
           day: "numeric",
         })}
+        title={greeting(now.getHours())}
+        stats={
+          <>
+            <StatChip label="Applied this week" value={appsThisWeek} icon={<Send />} />
+            <StatChip
+              label="Active interviews"
+              value={interviews}
+              icon={<MessagesSquare />}
+              tone={interviews ? "ok" : "default"}
+            />
+            <StatChip
+              label="Due in 7 days"
+              value={dueSoon}
+              icon={<CalendarClock />}
+              tone={dueSoon > 4 ? "warn" : "default"}
+            />
+          </>
+        }
       />
 
       {empty && (
-        <div className="mb-6">
+        <div className="mb-4">
           <EmptyState
             title="Nothing tracked yet"
             hint="Add a class under Assignments, then refresh listings in Settings to start getting daily internship picks."
@@ -66,53 +90,67 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Focal block: what to do right now, with deadlines as the context rail. */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      {classes.length > 0 && <QuickAdd classes={classes} />}
+
+      {/* Asymmetric on purpose: the timeline is the spine and runs full height;
+          picks and activity stack beside it at different weights. */}
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-12">
         <Card
-          title="Today"
-          className="overflow-hidden lg:col-span-2"
-          bodyClass="p-6"
+          title="Timeline"
+          className="flex min-h-0 min-w-0 flex-col lg:col-span-5"
+          bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
           action={
             <Link
-              href="/internships"
+              href="/calendar"
               className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
             >
-              All picks <ArrowRight size={12} aria-hidden />
+              Calendar <ArrowRight size={12} aria-hidden />
             </Link>
           }
         >
-          <div className="grid gap-8 md:grid-cols-2">
-            <div>
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.08em] text-faint">
-                Due today
-              </p>
-              <TodayAssignments assignments={dueToday} />
-            </div>
-            <div>
-              <p className="mb-3 text-xs font-medium uppercase tracking-[0.08em] text-faint">
-                Today&apos;s picks
-              </p>
-              <PickList jobs={picks.jobs} matchPool={picks.matchPool} compact />
-            </div>
-          </div>
+          <Timeline items={deadlines(assignments, apps, classes)} />
         </Card>
 
-        <Card title="Deadlines">
-          <DeadlineList items={deadlines(assignments, apps, classes)} />
-        </Card>
+        <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-7">
+          <Card
+            accented
+            title="Today's picks"
+            className="flex min-h-0 min-w-0 flex-[3] flex-col"
+            bodyClass="min-h-0 flex-1 overflow-y-auto px-5 pt-0 pb-5"
+            action={
+              <Link
+                href="/internships"
+                className="inline-flex items-center gap-1 text-xs text-accent hover:underline"
+              >
+                All picks <ArrowRight size={12} aria-hidden />
+              </Link>
+            }
+          >
+            {/* Exactly three: a partial fourth row peeking out read as a scroll bug. */}
+            <PickList jobs={picks.jobs.slice(0, 3)} matchPool={picks.matchPool} compact />
+          </Card>
+
+          <Card
+            title="Activity"
+            className="flex min-h-0 min-w-0 flex-[2] flex-col"
+            bodyClass="min-h-0 flex-1 overflow-hidden px-5 pt-1 pb-5"
+          >
+            <ActivityHeatmap
+              counts={counts}
+              weeks={18}
+              showStats
+              aside={
+                <ProgressRing
+                  value={todayPct}
+                  label="Done today"
+                  hint={dueToday.length ? `${doneToday} of ${dueToday.length}` : "Nothing due"}
+                  tone={dueToday.length && todayPct === 100 ? "ok" : "accent"}
+                />
+              }
+            />
+          </Card>
+        </div>
       </div>
-
-      <StatGrid cols={3} className="mt-4">
-        <StatTile label="Applications this week" value={appsThisWeek} />
-        <StatTile label="Active interviews" value={interviews} tone={interviews ? "ok" : "default"} />
-        <StatTile label="Due in 7 days" value={dueSoon} tone={dueSoon > 4 ? "warn" : "default"} />
-      </StatGrid>
-
-      <div className="mt-4">
-        <Card title="Activity" bodyClass="p-6">
-          <ActivityHeatmap counts={counts} weeks={18} showStats />
-        </Card>
-      </div>
-    </>
+    </div>
   );
 }

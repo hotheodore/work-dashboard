@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState } from "react";
+import { SERIES } from "./classColors";
 
-/** Stable series palette, colorblind-safe ordering, one variant per theme.
- *  [0] is the accent so accent-tinted charts (the heatmap) track the brand. */
-export const SERIES = {
-  light: ["#3b6ea8", "#0f7a8a", "#b4700f", "#a8467a", "#157f5a", "#6b5bb5", "#c0392b", "#2b7fb8"],
-  dark: ["#6a9fd8", "#56c2c8", "#e0b25c", "#d98cb0", "#6ec9a0", "#a99cea", "#e88b7d", "#7cc0ea"],
-};
+// The palette and the id→slot hash live in lib/classColors.ts (no "use client")
+// so server components can use them too. Re-exported here because every chart
+// already imports them from this module.
+export { SERIES, colorFor, classHue, classVar } from "./classColors";
 
 export interface ChartTheme {
   dark: boolean;
@@ -36,11 +35,11 @@ const LIGHT: ChartTheme = {
 const DARK: ChartTheme = {
   dark: true,
   series: SERIES.dark,
-  grid: "#333333",
-  axis: "#908f8c",
-  muted: "#4a4a4a",
-  tooltipBg: "#262626",
-  tooltipBorder: "#3b3b3b",
+  grid: "#333331",
+  axis: "#97948c",
+  muted: "#4a4a46",
+  tooltipBg: "#292927",
+  tooltipBorder: "#403f3b",
   text: "#ecebe8",
 };
 
@@ -82,15 +81,9 @@ export function tooltipStyle(t: ChartTheme): React.CSSProperties {
   return {
     background: t.tooltipBg,
     border: `1px solid ${t.tooltipBorder}`,
-    borderRadius: 10,
+    borderRadius: 12,
+    boxShadow: "var(--shadow-lg)",
     color: t.text,
     fontSize: 12,
   };
-}
-
-/** Deterministic color for a class id so a class keeps its color everywhere. */
-export function colorFor(id: string, series: string[]): string {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return series[h % series.length];
 }

@@ -2,6 +2,7 @@ import PageHeader from "@/components/PageHeader";
 import { Card } from "@/components/ui";
 import { getApplications, getAssignments, getClasses } from "@/lib/store";
 import { dayKey } from "@/lib/derive";
+import { classVar } from "@/lib/classColors";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -40,12 +41,15 @@ export default async function CalendarPage() {
       <Card
         bodyClass="p-3"
         action={
-          // Was a loose paragraph below the card; a swatch legend says it in less space.
-          <div className="flex items-center gap-3 text-xs text-faint">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-accent" />
-              Assignments
-            </span>
+          // Was a loose paragraph below the card; a swatch legend says it in less
+          // space. Now one swatch per class, since the chips are class-colored.
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-faint">
+            {classes.map((c) => (
+              <span key={c.id} className="flex items-center gap-1.5" style={classVar(c.id)}>
+                <span className="h-2 w-2 rounded-full bg-class" />
+                {c.code || c.name}
+              </span>
+            ))}
             <span className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full bg-warn" />
               Applications
@@ -71,26 +75,33 @@ export default async function CalendarPage() {
                 key={key}
                 className={`min-h-26 rounded-[var(--radius-sm)] border p-1.5 transition-colors ${
                   key === today
-                    ? "border-accent bg-accent-soft"
+                    ? "border-accent/40 bg-accent-soft"
                     : "border-border hover:bg-surface-2"
                 }`}
               >
-                <p
-                  className={`tabular mb-1 text-xs ${
-                    key === today ? "font-semibold text-accent" : "text-faint"
-                  }`}
-                >
-                  {Number(key.slice(-2))}
+                {/* Today is a filled marker on the number, not a wash over the
+                    whole cell — the wash fought with the colored chips inside. */}
+                <p className="mb-1 flex">
+                  <span
+                    className={`tabular grid h-5 min-w-5 place-items-center rounded-full px-1 font-mono text-xs ${
+                      key === today
+                        ? "bg-accent font-semibold text-accent-text"
+                        : "text-faint"
+                    }`}
+                  >
+                    {Number(key.slice(-2))}
+                  </span>
                 </p>
                 <div className="space-y-1">
                   {due.map((a) => (
                     <p
                       key={a.id}
                       title={a.title}
-                      className={`truncate rounded px-1.5 py-0.5 text-xs ${
+                      style={classVar(a.classId)}
+                      className={`truncate rounded border-l-2 border-class px-1.5 py-0.5 text-xs ${
                         a.status === "done"
                           ? "bg-surface-2 text-faint line-through"
-                          : "bg-accent-soft text-accent"
+                          : "bg-class/12 text-class"
                       }`}
                     >
                       {label(a.classId)}: {a.title}
@@ -100,7 +111,7 @@ export default async function CalendarPage() {
                     <p
                       key={a.id}
                       title={`${a.role} — ${a.company}`}
-                      className="truncate rounded bg-warn/12 px-1.5 py-0.5 text-xs text-warn"
+                      className="truncate rounded border-l-2 border-warn bg-warn/12 px-1.5 py-0.5 text-xs text-warn"
                     >
                       {a.company}
                     </p>

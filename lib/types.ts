@@ -17,9 +17,7 @@ export interface Assignment {
   classId: string;
   title: string;
   dueDate: string; // YYYY-MM-DD
-  weight: number; // percent of final grade
   status: Status;
-  grade?: number | null; // percent scored, null until graded
   notes?: string;
   completedAt?: string | null; // ISO date, feeds the activity heatmap
 }

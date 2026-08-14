@@ -15,9 +15,8 @@ const SCHEMA = {
             type: "string",
             description: "YYYY-MM-DD, or an empty string when the syllabus is ambiguous",
           },
-          weight: { type: "number", description: "percent of the final grade, 0 if unstated" },
         },
-        required: ["title", "dueDate", "weight"],
+        required: ["title", "dueDate"],
         additionalProperties: false,
       },
     },
@@ -32,7 +31,6 @@ Rules:
 - One entry per graded item: problem sets, projects, papers, quizzes, midterms, the final.
 - Skip readings, lectures, and office hours — only work that is submitted or sat.
 - dueDate must be YYYY-MM-DD. If the syllabus gives a weekday or relative date you cannot resolve to a calendar date, return an empty string rather than guessing.
-- weight is the percent of the final grade. If a category weight covers N items, split it evenly. If no weight is stated, use 0.
 - Preserve the syllabus's own naming for titles.`;
 
 export async function POST(request: Request) {

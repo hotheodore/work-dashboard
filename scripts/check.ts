@@ -1,6 +1,6 @@
-/** Smallest thing that fails if the grade / streak / job-filter logic breaks: npm run check */
+/** Smallest thing that fails if the completion / streak / job-filter logic breaks: npm run check */
 import assert from "node:assert/strict";
-import { classGrade, streak } from "../lib/grades";
+import { completion, streak } from "../lib/progress";
 import { dedupeJobs, filterJobs, normalizeListing, todayKey } from "../lib/jobFilters";
 import type { Assignment, Job, Settings } from "../lib/types";
 
@@ -9,37 +9,15 @@ const a = (p: Partial<Assignment>): Assignment => ({
   classId: "c1",
   title: "x",
   dueDate: "2026-01-01",
-  weight: 0,
   status: "todo",
-  grade: null,
   completedAt: null,
   ...p,
 });
 
-// --- grades ---
-const partial = classGrade([
-  a({ weight: 30, status: "done", grade: 88 }),
-  a({ weight: 20 }),
-]);
-assert.equal(partial.current, 88);
-assert.equal(partial.projected, null, "projection must stay null until weights cover the course");
-assert.equal(partial.completion, 50);
-
-const full = classGrade([
-  a({ weight: 50, status: "done", grade: 90 }),
-  a({ weight: 50, status: "done", grade: 70 }),
-]);
-assert.equal(full.current, 80);
-assert.equal(full.projected, 80);
-
-// ungraded work is projected at the current average once weights cover the course
-const mixed = classGrade([
-  a({ weight: 40, status: "done", grade: 100 }),
-  a({ weight: 60 }),
-]);
-assert.equal(mixed.current, 100);
-assert.equal(mixed.projected, 100);
-assert.equal(classGrade([]).current, null);
+// --- completion ---
+assert.equal(completion([a({ status: "done" }), a({})]), 50);
+assert.equal(completion([a({ status: "done" }), a({ status: "done" })]), 100);
+assert.equal(completion([]), 0, "no assignments is 0%, not NaN");
 
 // --- streak ---
 const day = (n: number) => {

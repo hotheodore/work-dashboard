@@ -7,7 +7,8 @@ import DueTimeline from "@/components/charts/DueTimeline";
 import ClassCompletion from "@/components/charts/ClassCompletion";
 import { getAssignments, getClasses } from "@/lib/store";
 import { completionData, timelineData } from "@/lib/derive";
-import { classGrade } from "@/lib/grades";
+import { completion } from "@/lib/progress";
+import { classVar } from "@/lib/classColors";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
@@ -36,34 +37,36 @@ export default async function AssignmentsPage() {
       {!classes.length ? (
         <EmptyState
           title="No classes yet"
-          hint="Add a class to start tracking assignments, grades, and deadlines."
+          hint="Add a class to start tracking assignments and deadlines."
         />
       ) : (
         <div className="space-y-6">
           <StatGrid>
             {classes.map((c) => {
               const mine = assignments.filter((a) => a.classId === c.id);
-              const g = classGrade(mine);
+              const pct = completion(mine);
               const next = mine
                 .filter((a) => a.status !== "done")
                 .sort((a, b) => a.dueDate.localeCompare(b.dueDate))[0];
               return (
                 <Link key={c.id} href={`/assignments/${c.id}`} className="block h-full">
-                  <div className="card card-interactive flex h-full flex-col p-5 hover:border-accent">
-                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-faint">
+                  <div
+                    className="card card-interactive card-spine flex h-full flex-col p-5 pl-6 hover:border-class"
+                    style={classVar(c.id)}
+                  >
+                    <p className="text-xs font-medium uppercase tracking-[0.08em] text-class">
                       {c.code || c.term || "Class"}
                     </p>
                     <p className="mt-1.5 text-base font-semibold">{c.name}</p>
                     {/* Progress bar reads faster than the percentage alone. */}
                     <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-surface-2">
                       <div
-                        className="h-full rounded-full bg-accent transition-[width] duration-500"
-                        style={{ width: `${Math.round(g.completion)}%` }}
+                        className="h-full rounded-full bg-class transition-[width] duration-500"
+                        style={{ width: `${Math.round(pct)}%` }}
                       />
                     </div>
-                    <p className="tabular mt-2 text-sm text-muted">
-                      {Math.round(g.completion)}% complete
-                      {g.current !== null && ` · ${g.current.toFixed(1)}% grade`}
+                    <p className="tabular mt-2 font-mono text-sm text-muted">
+                      {Math.round(pct)}% complete
                     </p>
                     <p className="mt-auto pt-2 text-xs text-faint">
                       {next ? `Next: ${next.title} (${next.dueDate})` : "Nothing due"}

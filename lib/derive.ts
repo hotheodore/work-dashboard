@@ -82,13 +82,15 @@ export interface Deadline {
   date: string; // YYYY-MM-DD
   daysOut: number;
   kind: "assignment" | "application";
+  /** Assignments only — drives the class identity color on the timeline row. */
+  classId?: string;
 }
 
 export function deadlines(
   assignments: Assignment[],
   apps: Application[],
   classes: Klass[],
-  limit = 8,
+  limit = 30,
 ): Deadline[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -105,6 +107,7 @@ export function deadlines(
         date: a.dueDate,
         daysOut: daysOut(a.dueDate),
         kind: "assignment" as const,
+        classId: a.classId,
       })),
     ...apps
       .filter((a) => a.deadline)
@@ -122,6 +125,30 @@ export function deadlines(
     .filter((i) => i.daysOut >= 0)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, limit);
+}
+
+export interface DeadlineGroup {
+  key: "today" | "tomorrow" | "week" | "later";
+  label: string;
+  items: Deadline[];
+}
+
+/** Buckets an already-sorted deadline list by urgency. Empty groups are dropped
+ *  so the timeline never shows a header with nothing under it. */
+export function groupDeadlines(items: Deadline[]): DeadlineGroup[] {
+  const groups: DeadlineGroup[] = [
+    { key: "today", label: "Today", items: [] },
+    { key: "tomorrow", label: "Tomorrow", items: [] },
+    { key: "week", label: "This week", items: [] },
+    { key: "later", label: "Later", items: [] },
+  ];
+  for (const i of items) {
+    if (i.daysOut === 0) groups[0].items.push(i);
+    else if (i.daysOut === 1) groups[1].items.push(i);
+    else if (i.daysOut <= 7) groups[2].items.push(i);
+    else groups[3].items.push(i);
+  }
+  return groups.filter((g) => g.items.length);
 }
 
 export function urgencyTone(daysOut: number): "danger" | "warn" | "default" {
