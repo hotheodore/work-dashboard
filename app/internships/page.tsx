@@ -9,6 +9,7 @@ import ActivityHeatmap from "@/components/charts/ActivityHeatmap";
 import { getApplications, getListings, getSettings } from "@/lib/store";
 import { getDailyPicks } from "@/lib/jobs";
 import { activityCounts, funnelData } from "@/lib/derive";
+import { formatDateTime } from "@/lib/time";
 
 // reads data/*.json at request time — never prerender
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ export default async function InternshipsPage() {
         title="Internships"
         subtitle={
           cache.fetchedAt
-            ? `${cache.jobs.length} live postings cached · updated ${new Date(cache.fetchedAt).toLocaleString()}`
+            ? `${cache.jobs.length} live postings cached · updated ${formatDateTime(cache.fetchedAt)}`
             : "No listings cached yet — refresh them in Settings"
         }
         action={

@@ -1,6 +1,7 @@
 import "server-only";
 import { clearGoogleTokens, getGoogleTokens, setGoogleTokens } from "./store";
 import type { CalendarEvent, GoogleTokens } from "./types";
+import { APP_TZ, dayKey, shiftKey, startOfDay } from "./time";
 
 /**
  * Read-only Google Calendar for the one account this dashboard belongs to.
@@ -175,11 +176,11 @@ type GoogleEvent = {
   end?: { dateTime?: string; date?: string };
 };
 
-/** Local-midnight bounds for the given day, as the RFC3339 Google wants. */
+/** App-zone midnight bounds for the given day, as the RFC3339 Google wants. */
 function dayBounds(now = new Date()): { timeMin: string; timeMax: string } {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  const key = dayKey(now);
+  const start = startOfDay(key);
+  const end = startOfDay(shiftKey(key, 1));
   return { timeMin: start.toISOString(), timeMax: end.toISOString() };
 }
 
@@ -220,6 +221,8 @@ export async function fetchTodayEvents(now = new Date()): Promise<CalendarEvent[
         singleEvents: "true", // expand recurring series into occurrences
         orderBy: "startTime",
         maxResults: "50",
+        timeZone: APP_TZ, // resolve recurring-event occurrences in the app zone
+
       });
       try {
         const data = await api<{ items?: GoogleEvent[] }>(

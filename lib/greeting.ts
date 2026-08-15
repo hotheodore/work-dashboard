@@ -8,6 +8,8 @@
  *  string down rather than calling it on both sides.
  */
 
+import { hourOfDay } from "./time";
+
 type Slot = "night" | "morning" | "afternoon" | "evening";
 
 function slot(hour: number): Slot {
@@ -55,6 +57,6 @@ const LINES: Record<Slot, string[]> = {
 };
 
 export function greeting(date = new Date()): string {
-  const pool = LINES[slot(date.getHours())];
+  const pool = LINES[slot(hourOfDay(date))];
   return pool[Math.floor(Math.random() * pool.length)];
 }

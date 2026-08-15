@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/time";
 import { CalendarDays, Loader2, Sparkles } from "lucide-react";
 import { inputClass } from "@/components/ui";
 import { addAssignment } from "@/lib/actions";
@@ -19,7 +20,7 @@ interface Parsed {
 const DEBOUNCE_MS = 550;
 
 function shortDate(iso: string) {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+  return formatDate(iso, {
     month: "short",
     day: "numeric",
   });

@@ -93,7 +93,5 @@ export function filterJobs(jobs: Job[], s: Settings, seen: string[]): Job[] {
     .map((x) => x.job);
 }
 
-export function todayKey(d = new Date()): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+export { dayKey as todayKey } from "./time";
 

@@ -1,7 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import { Card } from "@/components/ui";
 import { getApplications, getAssignments, getClasses } from "@/lib/store";
-import { dayKey } from "@/lib/derive";
+import { dayKey, formatDate, shiftKey, weekdayOf } from "@/lib/time";
 import { classVar } from "@/lib/classColors";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -16,17 +16,16 @@ export default async function CalendarPage() {
     getClasses(),
   ]);
 
-  const now = new Date();
-  const first = new Date(now.getFullYear(), now.getMonth(), 1);
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const lead = first.getDay();
-  const today = dayKey(now);
+  const today = dayKey();
+  const [year, month] = today.split("-");
+  const first = `${year}-${month}-01`;
+  // Day 0 of the next month is the last day of this one.
+  const daysInMonth = new Date(Date.UTC(Number(year), Number(month), 0)).getUTCDate();
+  const lead = weekdayOf(first);
 
   const cells: (string | null)[] = [
     ...Array<null>(lead).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) =>
-      dayKey(new Date(now.getFullYear(), now.getMonth(), i + 1)),
-    ),
+    ...Array.from({ length: daysInMonth }, (_, i) => shiftKey(first, i)),
   ];
 
   const label = (id: string) => classes.find((c) => c.id === id)?.code ?? "Class";
@@ -35,7 +34,7 @@ export default async function CalendarPage() {
     <>
       <PageHeader
         title="Calendar"
-        subtitle={now.toLocaleDateString(undefined, { month: "long", year: "numeric" })}
+        subtitle={formatDate(today, { month: "long", year: "numeric" })}
       />
 
       <Card

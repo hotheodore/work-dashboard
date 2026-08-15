@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { saveSettings } from "@/lib/actions";
 import { Button, Card, Field, inputClass } from "@/components/ui";
 import type { Settings, SourceRun } from "@/lib/types";
+import { formatDateTime } from "@/lib/time";
 
 const TONE: Record<SourceRun["status"], string> = {
   ok: "text-[var(--ok)]",
@@ -127,7 +128,7 @@ export default function SettingsForm({
       <Card title="Listings">
         <p className="text-sm text-muted">
           {cachedCount} active postings cached
-          {fetchedAt ? `, last fetched ${new Date(fetchedAt).toLocaleString()}` : " — never fetched"}.
+          {fetchedAt ? `, last fetched ${formatDateTime(fetchedAt)}` : " — never fetched"}.
         </p>
 
         {runs.length > 0 && (

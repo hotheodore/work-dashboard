@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { addAssignment, addClass, deleteClass, updateClass } from "@/lib/actions";
 import { Button, Field, Modal, inputClass } from "@/components/ui";
 import type { Klass, Status } from "@/lib/types";
+import { dayKey } from "@/lib/time";
 
 export function AddClassButton() {
   const [open, setOpen] = useState(false);
@@ -98,7 +99,7 @@ export function AddAssignmentButton({
   const [form, setForm] = useState({
     classId: defaultClassId ?? classes[0]?.id ?? "",
     title: "",
-    dueDate: new Date().toISOString().slice(0, 10),
+    dueDate: dayKey(),
     status: "todo" as Status,
     notes: "",
   });

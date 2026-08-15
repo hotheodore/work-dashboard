@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { completion, streak } from "../lib/progress";
 import { dedupeJobs, filterJobs, normalizeListing, todayKey } from "../lib/jobFilters";
+import { shiftKey } from "../lib/time";
 import type { Assignment, Job, Settings } from "../lib/types";
 
 const a = (p: Partial<Assignment>): Assignment => ({
@@ -20,12 +21,8 @@ assert.equal(completion([a({ status: "done" }), a({ status: "done" })]), 100);
 assert.equal(completion([]), 0, "no assignments is 0%, not NaN");
 
 // --- streak ---
-const day = (n: number) => {
-  const d = new Date("2026-08-10T12:00:00");
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-};
-const at = new Date("2026-08-10T12:00:00");
+const at = "2026-08-10";
+const day = (n: number) => shiftKey(at, -n);
 assert.equal(streak([day(0), day(1), day(2)], at), 3);
 assert.equal(streak([day(1), day(2)], at), 2, "a streak ending yesterday still counts");
 assert.equal(streak([day(0), day(2)], at), 1, "a gap ends the streak");

@@ -3,12 +3,9 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { useChartTheme } from "@/lib/chartTheme";
 import { streak } from "@/lib/progress";
+import { dayKey, formatDate, shiftKey, weekdayOf } from "@/lib/time";
 
 const LEVELS = ["40", "73", "b3", "ff"];
-
-function key(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 /** GitHub-style grid. Plain CSS grid — a chart library buys nothing here. */
 export default function ActivityHeatmap({
@@ -38,29 +35,24 @@ export default function ActivityHeatmap({
   const span = compact ? Math.min(weeks, 18) : weeks;
 
   const { days, months } = useMemo(() => {
-    const end = new Date();
-    end.setDate(end.getDate() + (6 - end.getDay())); // pad to end of current week
-    const start = new Date(end);
-    start.setDate(start.getDate() - (span * 7 - 1));
+    const today = dayKey();
+    const end = shiftKey(today, 6 - weekdayOf(today)); // pad to end of current week
+    const start = shiftKey(end, -(span * 7 - 1));
 
     const days: { key: string; count: number }[] = [];
-    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const k = key(d);
+    for (let k = start; k <= end; k = shiftKey(k, 1)) {
       days.push({ key: k, count: counts[k] ?? 0 });
     }
 
     // One label per week column, emitted the first time a month appears.
     const months: { col: number; label: string }[] = [];
-    let last = -1;
+    let last = "";
     for (let w = 0; w < span; w++) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + w * 7);
-      if (d.getMonth() !== last) {
-        last = d.getMonth();
-        months.push({
-          col: w,
-          label: d.toLocaleDateString(undefined, { month: "short" }),
-        });
+      const d = shiftKey(start, w * 7);
+      const month = d.slice(0, 7);
+      if (month !== last) {
+        last = month;
+        months.push({ col: w, label: formatDate(d, { month: "short" }) });
       }
     }
     return { days, months };
@@ -151,10 +143,7 @@ export default function ActivityHeatmap({
           </span>
           <span className="text-faint">
             {" · "}
-            {new Date(`${hover.key}T00:00:00`).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-            })}
+            {formatDate(hover.key, { month: "short", day: "numeric" })}
           </span>
         </div>
       )}

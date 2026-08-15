@@ -6,6 +6,7 @@ import { Briefcase } from "lucide-react";
 import { setAssignmentStatus } from "@/lib/actions";
 import { classVar } from "@/lib/classColors";
 import { groupDeadlines, type Deadline } from "@/lib/derive";
+import { formatDate } from "@/lib/time";
 
 /** One list for everything with a date on it. Replaced the old split between a
  *  "Due today" checklist and a separate Deadlines rail, which showed the same
@@ -59,7 +60,7 @@ export default function Timeline({ items }: { items: Deadline[] }) {
                 {/* Today's rows need no date — the header already said it. */}
                 {g.key !== "today" && (
                   <span className="tabular shrink-0 font-mono text-xs text-faint">
-                    {new Date(`${d.date}T00:00:00`).toLocaleDateString(undefined, {
+                    {formatDate(d.date, {
                       month: "short",
                       day: "numeric",
                     })}

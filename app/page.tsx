@@ -11,7 +11,8 @@ import QuickAdd from "@/components/assignments/QuickAdd";
 import { getApplications, getAssignments, getClasses } from "@/lib/store";
 import { getDailyPicks } from "@/lib/jobs";
 import { connection, fetchTodayEvents } from "@/lib/google";
-import { activityCounts, dayKey, deadlines } from "@/lib/derive";
+import { activityCounts, deadlines } from "@/lib/derive";
+import { dayKey, daysBetween, formatDate } from "@/lib/time";
 import { greeting } from "@/lib/greeting";
 import type { CalendarEvent } from "@/lib/types";
 
@@ -38,21 +39,20 @@ export default async function DashboardPage() {
   ]);
 
   const now = new Date();
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
+  const today = dayKey(now);
+  const weekAgo = new Date(Date.now() - 7 * 86_400_000);
 
   const appsThisWeek = apps.filter((a) => new Date(a.appliedAt) >= weekAgo).length;
   const interviews = apps.filter((a) => a.status === "interview" || a.status === "oa").length;
   const dueSoon = assignments.filter((a) => {
     if (a.status === "done") return false;
-    const out = (new Date(`${a.dueDate}T00:00:00`).getTime() - Date.now()) / 86_400_000;
+    const out = daysBetween(today, a.dueDate);
     return out >= -1 && out <= 7;
   }).length;
 
   const counts = activityCounts(assignments, apps);
 
   // Today's completion drives the ring beside the heatmap.
-  const today = dayKey(now);
   const dueToday = assignments.filter((a) => a.dueDate === today);
   const doneToday = dueToday.filter((a) => a.status === "done").length;
   const todayPct = dueToday.length ? (doneToday / dueToday.length) * 100 : 0;
@@ -64,11 +64,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col lg:h-[calc(100vh-3rem)] lg:overflow-hidden">
       <PageHeader
         className="mb-5"
-        eyebrow={now.toLocaleDateString(undefined, {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
+        eyebrow={formatDate(now, { weekday: "long", month: "long", day: "numeric" })}
         title={greeting(now)}
         stats={
           <>

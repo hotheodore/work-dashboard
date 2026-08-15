@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { CalendarDays, MapPin } from "lucide-react";
 import type { CalendarEvent } from "@/lib/types";
+import { formatTime } from "@/lib/time";
 
-const time = (iso: string) =>
-  new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+const time = (iso: string) => formatTime(iso, { hour: "numeric", minute: "2-digit" });
 
 /**
  * Today's Google Calendar events. `error` covers both "not connected" and a

@@ -1,9 +1,10 @@
 import type { Application, Assignment, Klass } from "./types";
 import { APP_STAGES } from "./types";
+import { dayKey, daysBetween, formatDate, shiftKey } from "./time";
 
-export function dayKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
+// Day identity lives in lib/time.ts now; re-exported so the existing importers
+// keep working and there is still only one definition.
+export { dayKey };
 
 /** One row per day: a `day` label plus one numeric column per class id. */
 export interface TimelinePoint {
@@ -18,13 +19,11 @@ export function timelineData(
   days = 14,
 ): TimelinePoint[] {
   const rows: TimelinePoint[] = [];
-  const start = new Date();
+  const start = dayKey();
   for (let i = 0; i < days; i++) {
-    const d = new Date(start);
-    d.setDate(d.getDate() + i);
-    const key = dayKey(d);
+    const key = shiftKey(start, i);
     const row: TimelinePoint = {
-      day: d.toLocaleDateString(undefined, { weekday: "short", day: "numeric" }),
+      day: formatDate(key, { weekday: "short", day: "numeric" }),
     };
     for (const c of classes) {
       row[c.id] = assignments.filter(
@@ -67,7 +66,9 @@ export function activityCounts(assignments: Assignment[], apps: Application[]) {
   const counts: Record<string, number> = {};
   const bump = (iso?: string | null) => {
     if (!iso) return;
-    const key = iso.slice(0, 10);
+    // Stored as a full UTC timestamp — an 8pm Central action belongs to that
+    // day, not to UTC's tomorrow, so re-key it in the app zone.
+    const key = dayKey(new Date(iso));
     counts[key] = (counts[key] ?? 0) + 1;
   };
   assignments.forEach((a) => bump(a.completedAt));
@@ -92,10 +93,8 @@ export function deadlines(
   classes: Klass[],
   limit = 30,
 ): Deadline[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysOut = (date: string) =>
-    Math.round((new Date(`${date}T00:00:00`).getTime() - today.getTime()) / 86_400_000);
+  const today = dayKey();
+  const daysOut = (date: string) => daysBetween(today, date);
 
   const items: Deadline[] = [
     ...assignments
