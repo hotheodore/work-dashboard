@@ -36,7 +36,10 @@ export default function Logo({ size = 32 }: { size?: number }) {
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="7.5" fill={`url(#${PLATE_ID})`} />
-      <g fill={`url(#${MARK_ID})`}>
+      {/* The mark's bounding box runs y 8.6–26.6, so its center sits at 17.6 in
+          a 32 box — 1.6 low. The translate pulls it back onto the true center
+          rather than rewriting every rect's y. */}
+      <g fill={`url(#${MARK_ID})`} transform="translate(0 -1.6)">
         <rect x="8.4" y="12.4" width="2.9" height="6.6" rx="1.45" opacity="0.62" />
         <rect x="14.55" y="8.6" width="2.9" height="10.4" rx="1.45" />
         <rect x="20.7" y="10.9" width="2.9" height="8.1" rx="1.45" opacity="0.8" />

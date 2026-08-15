@@ -17,7 +17,10 @@ export function applyTheme(theme: Theme) {
   else root.setAttribute("data-theme", theme);
 }
 
-export default function ThemeToggle() {
+/** `scope` distinguishes the sliding pill between instances: the mobile drawer
+ *  and the desktop rail are both mounted at once, and two motion elements
+ *  sharing a layoutId animate toward each other across the screen. */
+export default function ThemeToggle({ scope = "" }: { scope?: string }) {
   const [theme, setTheme] = useState<Theme>("system");
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function ThemeToggle() {
         >
           {theme === o.value && (
             <motion.span
-              layoutId="theme-pill"
+              layoutId={`theme-pill${scope}`}
               className="absolute inset-0 rounded-md bg-accent-soft"
               transition={{ type: "spring", stiffness: 420, damping: 34 }}
             />

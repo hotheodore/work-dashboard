@@ -17,6 +17,9 @@ export const metadata: Metadata = {
 
 // Tints the browser chrome on mobile; matches --bg per theme.
 export const viewport: Viewport = {
+  // Lets the standalone iOS window paint under the notch and home indicator;
+  // the top bar pays it back with env(safe-area-inset-top) padding.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#faf9f5" },
     { media: "(prefers-color-scheme: dark)", color: "#1f1e1d" },
@@ -33,9 +36,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-full font-sans">
-        <div className="flex min-h-screen">
+        {/* Column below lg: the sidebar renders a top bar there instead of a
+            rail, so it stacks above the content rather than beside it. */}
+        <div className="flex min-h-screen flex-col lg:flex-row">
           <Sidebar />
-          <main className="glow-header min-w-0 flex-1 px-5 py-6 lg:px-8">
+          <main className="glow-header min-w-0 flex-1 px-5 py-5 lg:px-8 lg:py-6">
             {/* Capped so grids stay dense on wide monitors instead of stretching. */}
             <div className="mx-auto w-full max-w-[1400px]">{children}</div>
           </main>

@@ -11,8 +11,10 @@
     </linearGradient>
   </defs>
   <rect width="32" height="32" rx="7.5" fill="url(#plate)"/>
-  <!-- the bench: one surface, three things standing on it -->
-  <g fill="url(#mark)">
+  <!-- the bench: one surface, three things standing on it. translate keeps the
+       mark optically centered — its bbox center is 1.6 low in a 32 box.
+       Same geometry as components/Logo.tsx: edit both together. -->
+  <g fill="url(#mark)" transform="translate(0 -1.6)">
     <rect x="8.4" y="12.4" width="2.9" height="6.6" rx="1.45" opacity=".62"/>
     <rect x="14.55" y="8.6" width="2.9" height="10.4" rx="1.45"/>
     <rect x="20.7" y="10.9" width="2.9" height="8.1" rx="1.45" opacity=".8"/>

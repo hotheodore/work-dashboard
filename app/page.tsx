@@ -101,10 +101,13 @@ export default async function DashboardPage() {
       {classes.length > 0 && <QuickAdd classes={classes} />}
 
       {/* Asymmetric on purpose: picks and today's calendar stack in the narrow
-          column; the timeline is the spine and gets the width to show dates. */}
+          column; the timeline is the spine and gets the width to show dates.
+          On a phone only the spine survives — the calendar, the picks and the
+          heatmap are all reference material you go to a dedicated page for,
+          and each one pushed the deadlines below the fold. */}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-12">
         {/* Left column: what's happening today above what to apply to today. */}
-        <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-5">
+        <div className="hidden min-h-0 min-w-0 flex-col gap-4 lg:col-span-5 lg:flex">
           <Card
             title="Today"
             tint="var(--accent-2)"
@@ -134,10 +137,12 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex min-h-0 min-w-0 flex-col gap-4 lg:col-span-7">
+          {/* flex-[3] only divides space inside the locked-height desktop
+              layout; on a phone the card is in normal flow and needs a floor. */}
           <Card
             title="Timeline"
             tint="var(--accent-3)"
-            className="flex min-h-0 min-w-0 flex-[3] flex-col"
+            className="flex min-h-[60vh] min-w-0 flex-[3] flex-col lg:min-h-0"
             bodyClass="min-h-0 flex-1 overflow-y-auto fade-bottom px-5 pt-0 pb-5"
             action={
               <Link
@@ -154,7 +159,7 @@ export default async function DashboardPage() {
           <Card
             title="Activity"
             tint="var(--accent)"
-            className="flex min-h-0 min-w-0 flex-[2] flex-col"
+            className="hidden min-h-0 min-w-0 flex-[2] flex-col lg:flex"
             bodyClass="min-h-0 flex-1 overflow-hidden px-5 pt-1 pb-5"
           >
             <ActivityHeatmap
