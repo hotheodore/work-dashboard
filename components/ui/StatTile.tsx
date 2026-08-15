@@ -111,14 +111,17 @@ export function StatChip({
   value,
   icon,
   tone = "default",
+  className = "flex",
 }: {
   label: string;
   value: ReactNode;
   icon?: ReactNode;
   tone?: Tone;
+  /** Display/visibility classes — lets a caller drop a chip at a breakpoint. */
+  className?: string;
 }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className={`items-center gap-2.5 ${className}`}>
       {icon && (
         <span
           aria-hidden

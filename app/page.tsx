@@ -74,6 +74,7 @@ export default async function DashboardPage() {
               value={interviews}
               icon={<MessagesSquare />}
               tone={interviews ? "ok" : "blue"}
+              className="hidden lg:flex"
             />
             <StatChip
               label="Due in 7 days"
