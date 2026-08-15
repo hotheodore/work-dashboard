@@ -1,3 +1,7 @@
+"use client";
+
+import { useId } from "react";
+
 /** The app mark: a bench with three uprights standing on it — the workbench.
  *  Same geometry as app/icon.svg — edit both together or the tab and the rail
  *  drift apart. Dark plate in both themes: it is the home-screen icon first,
@@ -6,15 +10,20 @@
  *  The colors are fixed hexes, not --accent: the touch icon rasterizes to PNG,
  *  so a theme-reactive mark would disagree with the icon on the home screen.
  *
- *  The gradient ids are constants, not a counter: a module-level counter
- *  increments at different points on the server and the client and produced a
- *  hydration mismatch. Duplicate ids are harmless here — every Logo wants the
- *  same gradients anyway.
+ *  The gradient ids come from useId, not constants and not a module-level
+ *  counter. The counter increments at different points on the server and the
+ *  client and produced a hydration mismatch; the constants were fine only
+ *  while one Logo was ever mounted. Several are now — the mobile top bar, the
+ *  drawer, the desktop rail — and a duplicate id resolves to whichever comes
+ *  first in the document, which is the copy inside the lg:hidden bar. A paint
+ *  server in a display:none subtree does not resolve, so the visible logo lost
+ *  its fill entirely.
  */
-const PLATE_ID = "logo-plate";
-const MARK_ID = "logo-mark";
-
 export default function Logo({ size = 32 }: { size?: number }) {
+  const uid = useId();
+  const PLATE_ID = `logo-plate-${uid}`;
+  const MARK_ID = `logo-mark-${uid}`;
+
   return (
     <svg
       viewBox="0 0 32 32"
